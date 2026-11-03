@@ -12,13 +12,13 @@ spring:
     hibernate:
       ddl-auto: update
     defer-datasource-initialization: true
-  #  sql:
-  #    init:
-  #      mode: always
+  sql:
+      init:
+        mode: always
   application:
     name: server
   datasource:
-    url: jdbc:postgresql://localhost:5432/ecommerce  #Db url
+    url: jdbc:postgresql://localhost:5432/e-commerce  #Db url
     username: postgres #Db username
     password: user   #Db password
 jwt:

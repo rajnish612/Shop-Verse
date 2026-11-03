@@ -34,7 +34,8 @@ public class User {
 
     private String avatar;
 
-    private boolean googleLinked;
+
+    private boolean googleLinked = false;
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
@@ -61,6 +62,8 @@ public class User {
     )
     @JsonIgnore
     private Set<Coupon> usedCoupons = new HashSet<>();
+
+    private boolean active;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
