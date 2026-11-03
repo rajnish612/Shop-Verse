@@ -78,6 +78,15 @@ public class ProductService {
                 .collect(Collectors.toList());
     }
 
+    //Get latest deals of products
+    public List<ProductResponseDTO> getDealsOfTheDay() {
+        List<Product> products = productRepo.findDeals();
+        return products.stream()
+
+                .map(this::toProductResponseDTO)
+                .toList();
+    }
+
     //Convert ProductAttribute entity and its values to ProductAttributeResponseDTO
     private AttributeResponseDTO toProductAttributeResponseDTO(ProductAttribute productAttribute, List<ProductAttributeValue> values) {
         return AttributeResponseDTO.builder()

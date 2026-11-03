@@ -37,8 +37,7 @@ export const productApis = {
     filters.categoryIds?.forEach((id) =>
       params.append("categoryIds", String(id)),
     );
-    if (filters.sellerId !== undefined)
-      params.set("sellerId", String(filters.sellerId));
+
     if (filters.minPrice !== undefined)
       params.set("minPrice", String(filters.minPrice));
     if (filters.maxPrice !== undefined)
@@ -58,6 +57,12 @@ export const productApis = {
     const { data } = await api.get<Product[]>(
       `/product${query ? `?${query}` : ""}`,
     );
+    return data;
+  },
+
+  //Get latest deals of products
+  async getDeals(): Promise<Product[]> {
+    const { data } = await api.get("/product/deals");
     return data;
   },
 };

@@ -40,7 +40,15 @@ public class ProductController {
                                                                    @RequestParam(required = false) Integer stockMin,
                                                                    @RequestParam(required = false) Integer stockMax,
                                                                    @RequestParam(required = false) Set<Long> attributeValueIds) {
-        return ResponseEntity.ok(productService.getAllProducts(keyword, categoryIds,minPrice, maxPrice,
+        return ResponseEntity.ok(productService.getAllProducts(keyword, categoryIds, minPrice, maxPrice,
                 minRating, inStock, stockMin, stockMax, attributeValueIds));
     }
+
+
+    //Get latest deals of the products
+    @GetMapping("/deals")
+    public ResponseEntity<List<ProductResponseDTO>> getDealsOfTheDay() {
+        return ResponseEntity.ok(productService.getDealsOfTheDay());
+    }
+
 }

@@ -7,6 +7,9 @@ import AttributesPage from "./pages/admin/AttributesPage";
 import ProductsPage from "./pages/admin/ProductsPage";
 import AddOrEditProduct from "./pages/admin/AddOrEditProduct";
 import CouponsPage from "./pages/admin/CouponsPage";
+import UserLayout from "./components/layout/UserLayout";
+import HomePage from "./pages/user/HomePage";
+import ShopPage from "./pages/user/ShopPage";
 
 function App() {
   return (
@@ -22,6 +25,11 @@ function App() {
           <Route path="categories" element={<CategoriesPage />} />
           <Route path="coupons" element={<CouponsPage />} />
           <Route path="attributes" element={<AttributesPage />} />
+        </Route>
+        {/* User interface */}
+        <Route element={<UserLayout />}>
+          <Route index element={<HomePage />} />
+          <Route path="shop" element={<ShopPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
