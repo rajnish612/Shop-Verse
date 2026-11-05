@@ -65,4 +65,10 @@ export const productApis = {
     const { data } = await api.get("/product/deals");
     return data;
   },
+
+  //Get product by product
+  async getProduct(id: number): Promise<Product> {
+    const { data } = await api.get(`/product/${id}`);
+    return data;
+  },
 };

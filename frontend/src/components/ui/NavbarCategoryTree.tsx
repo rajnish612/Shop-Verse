@@ -47,7 +47,11 @@ const NavbarCategoryTree: React.FC<NavbarCategoryTreeProps> = ({
   };
 
   const handleCategoryClick = (categoryId: number) => {
-    navigate(`/shop/${categoryId}`);
+    navigate(`/shop`, {
+      state: {
+        categoryId,
+      },
+    });
     onNavigate?.();
   };
 

@@ -87,6 +87,13 @@ public class ProductService {
                 .toList();
     }
 
+    //Get product by productId
+    public ProductResponseDTO getProductByProductId(Long productId) {
+        return productRepo.findById(productId)
+                .map(this::toProductResponseDTO)
+                .orElse(null);
+    }
+
     //Convert ProductAttribute entity and its values to ProductAttributeResponseDTO
     private AttributeResponseDTO toProductAttributeResponseDTO(ProductAttribute productAttribute, List<ProductAttributeValue> values) {
         return AttributeResponseDTO.builder()
@@ -133,5 +140,6 @@ public class ProductService {
                 .updatedAt(product.getUpdatedAt())
                 .build();
     }
+
 
 }

@@ -10,6 +10,8 @@ import CouponsPage from "./pages/admin/CouponsPage";
 import UserLayout from "./components/layout/UserLayout";
 import HomePage from "./pages/user/HomePage";
 import ShopPage from "./pages/user/ShopPage";
+import ProductDetailsPage from "./pages/user/ProductDetailsPage";
+import CartPage from "./pages/user/CartPage";
 
 function App() {
   return (
@@ -30,6 +32,8 @@ function App() {
         <Route element={<UserLayout />}>
           <Route index element={<HomePage />} />
           <Route path="shop" element={<ShopPage />} />
+          <Route path="product/:id" element={<ProductDetailsPage />} />
+          <Route path="cart" element={<CartPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

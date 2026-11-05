@@ -10,9 +10,15 @@ import { categoriesApi } from "../../services/category";
 import { productApis } from "../../services/products";
 import ProductGrid from "../../components/ProductsGrid";
 import { Search } from "lucide-react";
+import { useLocation } from "react-router";
 
 const ShopPage = () => {
-  const [categoryIds, setCategoryIds] = React.useState<Set<number>>(new Set());
+  const location = useLocation();
+  const data = location.state;
+
+  const [categoryIds, setCategoryIds] = React.useState<Set<number>>(
+    new Set(data?.categoryId ? [data.categoryId] : []),
+  );
   const [minPrice, setMinPrice] = React.useState("");
   const [maxPrice, setMaxPrice] = React.useState("");
   const [inStock, setInStock] = React.useState("");
@@ -24,6 +30,7 @@ const ShopPage = () => {
   const [attributes, setAttributes] = React.useState<ProductAttribute[]>([]);
   const [categories, setCategories] = React.useState<Category[]>([]);
   const [searchKeyword, setSearchKeyword] = React.useState<string>("");
+
   // Assuming categories and attributes are fetched in ShopPage
 
   const handleSelectCategories = (id: number) => {

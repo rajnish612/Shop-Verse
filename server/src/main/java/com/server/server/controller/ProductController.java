@@ -51,4 +51,9 @@ public class ProductController {
         return ResponseEntity.ok(productService.getDealsOfTheDay());
     }
 
+    @GetMapping("/{productId}")
+    public ResponseEntity<ProductResponseDTO> getProductById(@PathVariable Long productId) {
+        return ResponseEntity.ok(productService.getProductByProductId(productId));
+    }
+
 }

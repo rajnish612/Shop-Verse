@@ -63,4 +63,10 @@ export const couponApi = {
     const { data } = await api.patch(`/coupon/${couponId}/status?${query}`);
     return data;
   },
+
+  //apply coupon
+  async apply(code: string): Promise<Coupon> {
+    const { data } = await api.get<Coupon>(`/coupon/code/${code}`);
+    return data;
+  },
 };

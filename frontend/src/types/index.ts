@@ -88,16 +88,33 @@ export interface ProductAttribute {
   name: string;
   values: Record<number, string>;
 }
+export interface CartAttribute {
+  id: number;
+  name: string;
+  values: Record<number, string>;
+}
 
+export interface CartItem {
+  cartItemId: number;
+  productId: number;
+  productName: string;
+  imageUrls: string[];
+  price: number;
+  discount: number;
+  quantity: number;
+  configurationKey: string;
+  selectedAttributes: CartAttribute[];
+}
 export interface Review {
   id: number;
   rating: number;
   text: string;
-  user: Pick<User, "id" | "name" | "avatar">;
+  productId: number;
+  userId: number;
+  username: string;
   createdAt: string;
   updatedAt: string;
 }
-
 export interface Product {
   id: number;
   name: string;
@@ -117,18 +134,6 @@ export interface Product {
 
   createdAt: string;
   updatedAt: string;
-}
-
-export interface CartItem {
-  id: number;
-  quantity: number;
-  productId?: number;
-  productName?: string;
-  imageUrl?: string | null;
-  unitPrice?: number;
-  discount?: number;
-  productAttributeValueId?: number;
-  productAttributeValue?: string;
 }
 
 export interface Cart {
