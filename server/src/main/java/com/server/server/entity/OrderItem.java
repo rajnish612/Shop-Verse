@@ -13,6 +13,9 @@ import java.util.List;
 @Table(name = "order_items")
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class OrderItem {
 
     @Id
@@ -27,15 +30,12 @@ public class OrderItem {
     @JoinColumn(name = "product_id")
     private Product product;
 
-    private String productName;
-    private String productImage;
 
-    private BigDecimal mrpPrice;
-    private BigDecimal discountPercentage;
-    private BigDecimal sellingPrice;
+    @Column(nullable = false)
+    private int quantity;
 
-    private Integer quantity;
-    private BigDecimal subtotal;
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal unitPrice;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(

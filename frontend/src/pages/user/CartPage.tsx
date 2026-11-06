@@ -419,7 +419,12 @@ const CartPage: React.FC = () => {
 
               <Link
                 to="/checkout"
-                state={{ coupon: appliedCoupon }}
+                state={{
+                  coupon: appliedCoupon,
+                  subtotal: discountedItemsTotal,
+                  couponDiscount,
+                  grandTotal,
+                }}
                 className="w-full py-4 rounded-xl bg-primary hover:bg-primary-dark text-white font-bold flex items-center justify-center gap-2"
               >
                 Proceed to Checkout

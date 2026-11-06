@@ -12,6 +12,9 @@ import HomePage from "./pages/user/HomePage";
 import ShopPage from "./pages/user/ShopPage";
 import ProductDetailsPage from "./pages/user/ProductDetailsPage";
 import CartPage from "./pages/user/CartPage";
+import AddressPage from "./pages/user/AddressPage";
+import CheckoutPage from "./pages/user/CheckoutPage";
+import OrdersPage from "./pages/user/OrderPage";
 
 function App() {
   return (
@@ -34,6 +37,9 @@ function App() {
           <Route path="shop" element={<ShopPage />} />
           <Route path="product/:id" element={<ProductDetailsPage />} />
           <Route path="cart" element={<CartPage />} />
+          <Route path="addresses" element={<AddressPage />} />
+          <Route path="checkout" element={<CheckoutPage />} />
+          <Route path="orders" element={<OrdersPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

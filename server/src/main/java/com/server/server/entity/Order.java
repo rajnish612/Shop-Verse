@@ -46,9 +46,8 @@ public class Order {
     @Embedded
     private PaymentDetails paymentDetails;
 
-    @ManyToOne
-    @JoinColumn(name = "shipping_address_id", nullable = false)
-    private Address shippingAddress;
+    @Embedded
+    private ShippingAddress shippingAddress;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<OrderItem> orderItems = new HashSet<>();

@@ -147,27 +147,38 @@ export interface PaymentDetails {
   paymentTransactionId: string;
 }
 
-export interface OrderItem {
+export interface Order {
   id: number;
-  imageUrl: string;
-  productId: number;
-  productName: string;
-  quantity: number;
-  unitPrice: number;
-}
-
-export interface Order extends PaymentDetails {
-  id: number;
-  userName: string;
   userId: number;
+  userName: string;
   userEmail: string;
-  shippingAddress: Address;
 
-  orderItems: OrderItem[];
-  totalPrice: number;
   orderStatus: OrderStatus;
   orderDate: string;
   deliveryDate: string;
+
+  shippingAddress: Address;
+
+  paymentMethod: PaymentMethod;
+  paymentStatus: PaymentStatus;
+  paymentTransactionId: string | null;
+
+  orderItems: OrderItem[];
+  totalPrice: number;
+}
+
+export interface OrderItem {
+  id: number;
+  productId: number;
+  productName: string;
+  imageUrl: string | null;
+  quantity: number;
+  unitPrice: number;
+  selectedAttributes: {
+    id: number;
+    name: string;
+    value: string;
+  }[];
 }
 
 export interface Coupon {
