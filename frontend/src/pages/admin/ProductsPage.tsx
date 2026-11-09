@@ -6,10 +6,12 @@ import {
 } from "../../types";
 import { attributesApi } from "../../services/attributes";
 import { productApis } from "../../services/products";
-import { AlertCircle, CheckCircle, Edit, Package } from "lucide-react";
+import { AlertCircle, CheckCircle, Edit, Package, Plus } from "lucide-react";
 import { formatPrice, getDiscountedPrice } from "../../utils/helperFunctions";
 import { categoriesApi } from "../../services/category";
 import CategoryTreeFilter from "../../components/ui/CategoryTreeFilter";
+import { Link } from "react-router";
+import ProductEditModal from "../../components/ProductEditModal";
 
 const ProductsPage: React.FC = () => {
   const [attributes, setAttributes] = React.useState<ProductAttribute[]>([]);
@@ -19,7 +21,9 @@ const ProductsPage: React.FC = () => {
 
   const [attributesLoading, setAttributesLoading] =
     React.useState<boolean>(false);
-
+  const [editingProduct, setEditingProduct] = React.useState<Product | null>(
+    null,
+  );
   //For filters
   const [searchKeyword, setSearchKeyword] = React.useState("");
   const [attributeValueIds, setAttributeValueIds] = React.useState<Set<number>>(
@@ -115,16 +119,42 @@ const ProductsPage: React.FC = () => {
       return next;
     });
   };
+
+  //handle edit product modal open
+  const openEditProduct = (product: Product) => {
+    setEditingProduct(product);
+  };
+
+  //handle product updated
+  const handleProductUpdated = (updatedProduct: Product) => {
+    setProducts((current) =>
+      current?.map((product) =>
+        product.id === updatedProduct.id ? updatedProduct : product,
+      ),
+    );
+
+    setEditingProduct(null);
+  };
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-text-primary">
-          Products
-        </h1>
-        <p className="mt-1 text-sm text-text-secondary">
-          All products currently available in the catalog.
-        </p>
+      <div className="flex justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-text-primary">
+            Products
+          </h1>
+          <p className="mt-1 text-sm text-text-secondary">
+            All products currently available in the catalog.
+          </p>
+        </div>
+        <Link
+          to={"/admin/products/create"}
+          // onClick={() => setFilterRefreshKey((key) => key + 1)}
+          className="rounded-lg flex justify-center items-center bg-primary p-2 w-fit h-fit text-center text-xs font-medium text-white"
+        >
+          Add Product
+          <Plus size={14} />
+        </Link>
       </div>
 
       {/* Filters */}
@@ -369,7 +399,7 @@ const ProductsPage: React.FC = () => {
                     <td className="whitespace-nowrap px-5 py-3.5 text-right">
                       <button
                         type="button"
-                        // onClick={() => openEditProduct(product)}
+                        onClick={() => openEditProduct(product)}
                         className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text-secondary transition hover:bg-surface-hover hover:text-primary"
                       >
                         <Edit className="h-3.5 w-3.5" />
@@ -383,6 +413,17 @@ const ProductsPage: React.FC = () => {
           </tbody>
         </table>
       </div>
+
+      {/* Edit product modal */}
+      {editingProduct && (
+        <ProductEditModal
+          product={editingProduct}
+          categories={categories}
+          attributes={attributes}
+          onClose={() => setEditingProduct(null)}
+          onSave={handleProductUpdated}
+        />
+      )}
     </div>
   );
 };

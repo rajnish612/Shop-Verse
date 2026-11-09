@@ -3,6 +3,7 @@ package com.server.server.controller;
 import com.server.server.dto.AttributeResponseDTO;
 import com.server.server.dto.CreateProductRequestDTO;
 import com.server.server.dto.ProductResponseDTO;
+import com.server.server.dto.UpdateProductRequestDTO;
 import com.server.server.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -25,6 +26,12 @@ public class ProductController {
     public ResponseEntity<ProductResponseDTO> createProduct(@RequestBody CreateProductRequestDTO dto) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(productService.createProduct(dto));
+    }
+
+    //Endpoint to update existing product
+    @PutMapping("/update/{productId}")
+    public ResponseEntity<ProductResponseDTO> updateProduct(@PathVariable Long productId, @RequestBody UpdateProductRequestDTO product) {
+        return ResponseEntity.ok(productService.updateProduct(productId, product));
     }
 
     //Fetch all products endpoint

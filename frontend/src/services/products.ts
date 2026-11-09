@@ -11,6 +11,17 @@ export interface CreateProductRequest {
   imageUrls: string[];
   attributeValueIds: number[];
 }
+export interface UpdateProductRequest {
+  name?: string;
+  description?: string;
+  categoryId?: number;
+  mrpPrice?: number;
+  discount?: number;
+  stockQuantity?: number;
+  imageUrls?: string[];
+  attributeValueIds?: number[];
+}
+
 export interface ProductSearchFilters {
   keyword?: string;
   categoryIds?: number[];
@@ -69,6 +80,17 @@ export const productApis = {
   //Get product by product
   async getProduct(id: number): Promise<Product> {
     const { data } = await api.get(`/product/${id}`);
+    return data;
+  },
+
+  //Update product
+  async update(
+    productId: number,
+
+    request: UpdateProductRequest,
+  ): Promise<Product> {
+    const { data } = await api.put(`/product/update/${productId}`, request);
+
     return data;
   },
 };

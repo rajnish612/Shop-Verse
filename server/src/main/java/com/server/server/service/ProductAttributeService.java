@@ -7,6 +7,7 @@ import com.server.server.entity.ProductAttributeValue;
 import com.server.server.exception.ApiException;
 import com.server.server.repository.ProductAttributeRepo;
 import com.server.server.repository.ProductAttributeValueRepo;
+import com.server.server.repository.ProductRepo;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 public class ProductAttributeService {
     private final ProductAttributeRepo productAttributeRepo;
     private final ProductAttributeValueRepo productAttributeValueRepo;
+    private final ProductRepo productRepo;
 
     //Get all attributes
     public List<AttributeResponseDTO> getAllAttributes() {
@@ -84,6 +86,18 @@ public class ProductAttributeService {
         return Map.of(newValue.getId(), newValue.getValue());
     }
 
+    //Delete attribute value
+    public void deleteAttributeValue(Long valueId) {
+        if (!productAttributeValueRepo.existsById(valueId)) {
+            throw new ApiException("Product attribute value not found", HttpStatus.NOT_FOUND);
+        }
+        if (productRepo.existsByProductAttributeValuesId(valueId)) {
+            throw new ApiException("Product attribute value is in use", HttpStatus.BAD_REQUEST);
+        }
+
+        productAttributeValueRepo.deleteById(valueId);
+    }
+
     //To convert ProductAttribute entity and its values to ProductAttributeResponseDTO
     private AttributeResponseDTO toProductAttributeResponseDTO(ProductAttribute productAttribute) {
         return AttributeResponseDTO.builder()
@@ -96,14 +110,6 @@ public class ProductAttributeService {
                 .build();
     }
 
-    //Delete attribute value
-    public void deleteAttributeValue(Long valueId) {
-        System.out.println("Deleting attribute value with ID: " + valueId);
-        if (!productAttributeValueRepo.existsById(valueId)) {
-            throw new ApiException("Product attribute value not found", HttpStatus.NOT_FOUND);
-        }
-        productAttributeValueRepo.deleteById(valueId);
-    }
 
     //Delete attribute
     public void deleteAttribute(Long attributeId) {

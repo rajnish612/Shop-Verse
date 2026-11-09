@@ -5,7 +5,6 @@ import UsersPage from "./pages/admin/UsersPage";
 import CategoriesPage from "./pages/admin/CategoriesPage";
 import AttributesPage from "./pages/admin/AttributesPage";
 import ProductsPage from "./pages/admin/ProductsPage";
-import AddOrEditProduct from "./pages/admin/AddOrEditProduct";
 import CouponsPage from "./pages/admin/CouponsPage";
 import UserLayout from "./components/layout/UserLayout";
 import HomePage from "./pages/user/HomePage";
@@ -16,6 +15,7 @@ import AddressPage from "./pages/user/AddressPage";
 import CheckoutPage from "./pages/user/CheckoutPage";
 import OrdersPage from "./pages/user/OrderPage";
 import OrdersAdminPage from "./pages/admin/OrdersAdminPage";
+import AddProduct from "./pages/admin/AddProduct";
 
 function App() {
   return (
@@ -26,7 +26,7 @@ function App() {
           <Route index element={<DashboardPage />} />
           <Route path="users" element={<UsersPage />} />
           <Route path="products" element={<ProductsPage />} />
-          <Route path="products/create" element={<AddOrEditProduct />} />
+          <Route path="products/create" element={<AddProduct />} />
           <Route path="orders" element={<OrdersAdminPage />} />
           <Route path="categories" element={<CategoriesPage />} />
           <Route path="coupons" element={<CouponsPage />} />

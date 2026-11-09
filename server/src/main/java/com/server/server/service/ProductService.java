@@ -3,6 +3,7 @@ package com.server.server.service;
 import com.server.server.dto.AttributeResponseDTO;
 import com.server.server.dto.CreateProductRequestDTO;
 import com.server.server.dto.ProductResponseDTO;
+import com.server.server.dto.UpdateProductRequestDTO;
 import com.server.server.entity.Category;
 import com.server.server.entity.Product;
 import com.server.server.entity.ProductAttribute;
@@ -51,6 +52,14 @@ public class ProductService {
                 .build();
         Product savedProduct = productRepo.save(newProduct);
         return toProductResponseDTO(savedProduct);
+    }
+
+    //Update product details
+    public ProductResponseDTO updateProduct(Long productId, UpdateProductRequestDTO product) {
+        Product existingProduct = productRepo.findById(productId)
+                .orElseThrow(() -> new ApiException("Product not found", HttpStatus.NOT_FOUND));
+
+        return updateProductDetails(existingProduct, product);
     }
 
     //Get all products
@@ -169,5 +178,43 @@ public class ProductService {
                 .build();
     }
 
+    //Update product details
+    private ProductResponseDTO updateProductDetails(Product existingProduct, UpdateProductRequestDTO product) {
+        if (product.getName() != null) {
+            existingProduct.setName(product.getName());
+        }
+        if (product.getDescription() != null) {
+            existingProduct.setDescription(product.getDescription());
+        }
+        if (product.getCategoryId() != null) {
+            Category category = categoryRepo.findById(product.getCategoryId())
+                    .orElseThrow(() -> new ApiException("Category not found", HttpStatus.NOT_FOUND));
+            existingProduct.setCategory(category);
+        }
+        if (product.getMrpPrice() != null) {
+            existingProduct.setMrpPrice(product.getMrpPrice());
+        }
 
+        if (product.getDiscount() != null) {
+            existingProduct.setDiscount(product.getDiscount());
+        }
+        if (product.getStockQuantity() != null) {
+            existingProduct.setStockQuantity(product.getStockQuantity());
+        }
+        if (product.getImageUrls() != null) {
+            existingProduct.setImageUrls(product.getImageUrls());
+        }
+        if (product.getAttributeValueIds() != null) {
+            List<ProductAttributeValue> values = productAttributeValueRepo.findAllById(product.getAttributeValueIds());
+            if (values.size() != product.getAttributeValueIds()
+                    .size()) {
+                throw new ApiException("One or more attribute values not found", HttpStatus.NOT_FOUND);
+            }
+            Set<ProductAttributeValue> attributeValues = new HashSet<>(values);
+            existingProduct.setProductAttributeValues(attributeValues);
+        }
+
+        productRepo.save(existingProduct);
+        return toProductResponseDTO(existingProduct);
+    }
 }

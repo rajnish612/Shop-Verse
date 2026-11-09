@@ -119,6 +119,9 @@ public class CategoryService {
 
     //delete category
     public void deleteCategory(Long categoryId) {
+        if (productRepo.existsByCategoryId(categoryId)) {
+            throw new ApiException("Cannot delete a category that has products", HttpStatus.CONFLICT);
+        }
         Category category = findCategory(categoryId);
         if (categoryRepo.existsByParentId(categoryId)) {
             throw new ApiException("Delete child categories before deleting this category", HttpStatus.CONFLICT);

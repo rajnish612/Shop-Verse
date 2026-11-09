@@ -12,6 +12,7 @@ public interface CategoryRepo extends JpaRepository<Category, Long> {
 
     boolean existsByCodeIgnoreCaseAndIdNot(String code, Long id);
 
+
     boolean existsByParentId(Long parentId);
 
     @Query("SELECT " +

@@ -13,7 +13,7 @@ import {
   type ProductFormErrors,
 } from "../../utils/helperFunctions";
 
-const AddOrEditProduct: React.FC = () => {
+const AddProduct: React.FC = () => {
   const [isEditing, setIsEditing] = React.useState<boolean>(false);
   const [errors, setErrors] = React.useState<ProductFormErrors>({});
   const [attributes, setAttributes] = React.useState<ProductAttribute[]>([]);
@@ -293,4 +293,4 @@ const AddOrEditProduct: React.FC = () => {
   );
 };
 
-export default AddOrEditProduct;
+export default AddProduct;
