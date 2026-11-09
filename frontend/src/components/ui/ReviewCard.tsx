@@ -16,14 +16,14 @@ const ReviewCard = ({ review }: ReviewCardProps) => {
       {/* User details */}
       <div className="flex items-center gap-3">
         <img
-          src={review.user.avatar || "/default-avatar.png"}
-          alt={review.user.name}
+          src={review.avatar || "/default-avatar.png"}
+          alt={review.username}
           className="h-10 w-10 rounded-full object-cover"
         />
 
         <div>
           <h3 className="text-sm font-semibold text-gray-900">
-            {review.user.name}
+            {review.username}
           </h3>
           <p className="text-xs text-gray-500">{formattedDate}</p>
         </div>

@@ -64,6 +64,8 @@ public class ReviewService {
                 .text(review.getText())
                 .userId(review.getUser()
                         .getId())
+                .avatar(review.getUser()
+                        .getAvatar())
                 .username(review.getUser()
                         .getName())
                 .rating(review.getRating())

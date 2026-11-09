@@ -18,9 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -66,13 +64,22 @@ public class ProductService {
                                                    Integer stockMin,
                                                    Integer stockMax,
                                                    Set<Long> attributeValueIds) {
+        Set<Long> expandedCategoryIds = new HashSet<>();
+        if (categoryIds != null && !categoryIds.isEmpty()) {
+            for (Long categoryId : categoryIds) {
+                expandedCategoryIds.addAll(
+                        getCategoryAndDescendantIds(categoryId)
+                );
+            }
+        }
         List<Product> products = productRepo.findAll(ProductSpecification.keyword(keyword)
-                .and(ProductSpecification.categoryIds(categoryIds))
+                .and(ProductSpecification.categoryIds(expandedCategoryIds))
                 .and(ProductSpecification.priceRange(minPrice, maxPrice))
                 .and(ProductSpecification.minimumRating(minRating))
                 .and(ProductSpecification.inStock(inStock))
                 .and(ProductSpecification.stockRange(stockMin, stockMax))
                 .and(ProductSpecification.attributeValueIds(attributeValueIds)));
+
         return products.stream()
                 .map(this::toProductResponseDTO)
                 .collect(Collectors.toList());
@@ -92,6 +99,27 @@ public class ProductService {
         return productRepo.findById(productId)
                 .map(this::toProductResponseDTO)
                 .orElse(null);
+    }
+
+
+    public Set<Long> getCategoryAndDescendantIds(Long categoryId) {
+        List<Category> categories = categoryRepo.findAll();
+        Map<Long, List<Category>> childrenMap = categories.stream()
+                .filter(c -> c.getParent() != null)
+                .collect(Collectors.groupingBy(c -> c.getParent()
+                        .getId()));
+        Set<Long> categoryIds = new HashSet<>();
+        collectDescendantIds(categoryId, childrenMap, categoryIds);
+        return categoryIds;
+    }
+
+    public void collectDescendantIds(Long categoryId, Map<Long, List<Category>> childrenMap, Set<Long> categoryIds) {
+        if (!categoryIds.add(categoryId)) {
+            return;
+        }
+        for (Category child : childrenMap.getOrDefault(categoryId, Collections.emptyList())) {
+            collectDescendantIds(child.getId(), childrenMap, categoryIds);
+        }
     }
 
     //Convert ProductAttribute entity and its values to ProductAttributeResponseDTO

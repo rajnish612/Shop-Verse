@@ -3,6 +3,7 @@ import type { Review } from "../types";
 import { reviewApis } from "../services/reviews";
 import { Star } from "lucide-react";
 import ReviewCard from "./ui/ReviewCard";
+import CreateReview from "./CreateReview";
 
 const CustomerReviews: React.FC<{ productId: number }> = ({ productId }) => {
   const [loadingReviews, setLoadingReviews] = React.useState(true);
@@ -18,6 +19,12 @@ const CustomerReviews: React.FC<{ productId: number }> = ({ productId }) => {
       })
       .finally(() => setLoadingReviews(false));
   }, [productId]);
+
+  // Add newly created review to the list
+  const handleReviewCreated = (review: Review) => {
+    setReviews((prev) => [review, ...prev]);
+  };
+
   return (
     <div className="mt-8 bg-surface rounded-3xl border border-border shadow-xs p-6 md:p-8">
       {/* Header */}
@@ -35,6 +42,11 @@ const CustomerReviews: React.FC<{ productId: number }> = ({ productId }) => {
           {reviews.length} {reviews.length === 1 ? "Review" : "Reviews"}
         </span>
       </div>
+      {/* Create Review */}
+      <CreateReview
+        productId={productId}
+        onReviewCreated={handleReviewCreated}
+      />
 
       {/* Reviews */}
       {loadingReviews ? (

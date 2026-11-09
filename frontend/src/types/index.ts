@@ -111,6 +111,7 @@ export interface Review {
   text: string;
   productId: number;
   userId: number;
+  avatar: string;
   username: string;
   createdAt: string;
   updatedAt: string;

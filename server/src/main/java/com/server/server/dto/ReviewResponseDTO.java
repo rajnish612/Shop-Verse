@@ -23,6 +23,7 @@ public class ReviewResponseDTO {
 
     private Long userId;
 
+    private String avatar;
     private String username;
 
     private LocalDateTime createdAt;
