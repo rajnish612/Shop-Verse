@@ -18,6 +18,14 @@ public class OrderController {
 
     private final OrderService orderService;
 
+    //Endpoint to get all orders for admin
+    @GetMapping("/all")
+    public ResponseEntity<List<OrderResponseDTO>> getOrdersForAdmin(@RequestParam(required = false) String keyword,
+                                                                    @RequestParam(required = false) OrderStatus status) {
+        return ResponseEntity.ok(orderService.getOrdersForAdmin(keyword, status));
+    }
+
+
     //Endpoint to create a new order
     @PostMapping("/create/{addressId}")
     public ResponseEntity<OrderResponseDTO> createOrder(@PathVariable Long addressId,
@@ -33,6 +41,15 @@ public class OrderController {
     public ResponseEntity<List<OrderResponseDTO>> getOrdersForUser(
             @RequestParam Long userId, @RequestParam(required = false) OrderStatus status) {
         return ResponseEntity.ok(orderService.getOrderForUser(userId, status));
+    }
+
+    //Endpoint to update order status
+    @PatchMapping("/update/status/{orderId}/{status}")
+    public ResponseEntity<Void> updateOrderStatus(@PathVariable Long orderId,
+                                                  @PathVariable OrderStatus status) {
+        orderService.updateOrderStatus(orderId, status);
+        return ResponseEntity.ok()
+                .build();
     }
 
 }

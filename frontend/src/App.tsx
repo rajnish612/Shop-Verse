@@ -15,6 +15,7 @@ import CartPage from "./pages/user/CartPage";
 import AddressPage from "./pages/user/AddressPage";
 import CheckoutPage from "./pages/user/CheckoutPage";
 import OrdersPage from "./pages/user/OrderPage";
+import OrdersAdminPage from "./pages/admin/OrdersAdminPage";
 
 function App() {
   return (
@@ -26,7 +27,7 @@ function App() {
           <Route path="users" element={<UsersPage />} />
           <Route path="products" element={<ProductsPage />} />
           <Route path="products/create" element={<AddOrEditProduct />} />
-          <Route path="orders" element={<div></div>} />
+          <Route path="orders" element={<OrdersAdminPage />} />
           <Route path="categories" element={<CategoriesPage />} />
           <Route path="coupons" element={<CouponsPage />} />
           <Route path="attributes" element={<AttributesPage />} />

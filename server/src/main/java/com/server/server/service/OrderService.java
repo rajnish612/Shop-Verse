@@ -237,6 +237,26 @@ public class OrderService {
                 .toList();
     }
 
+    //Method to get all orders for admin with optional keyword and status filters
+    public List<OrderResponseDTO> getOrdersForAdmin(String keyword, OrderStatus status) {
+        Specification<Order> specification =
+                OrderSpecification.search(keyword)
+                        .and(OrderSpecification.hasStatus(status));
+
+        return orderRepo.findAll(specification)
+                .stream()
+                .map(this::mapToOrderResponseDTO)
+                .toList();
+    }
+
+    //Method to update order status
+    public void updateOrderStatus(Long orderId, OrderStatus status) {
+        Order order = orderRepo.findById(orderId)
+                .orElseThrow(() -> new ApiException("Order not found", HttpStatus.NOT_FOUND));
+        order.setOrderStatus(status);
+        orderRepo.save(order);
+    }
+
     private OrderResponseDTO mapToOrderResponseDTO(Order order) {
         Set<OrderItemResponseDTO> orderItems = order.getOrderItems()
                 .stream()

@@ -27,9 +27,9 @@ export const orderApis = {
   },
 
   //Get all orders for user
-   async getOrdersForUser(
+  async getOrdersForUser(
     userId: number,
-    status?: OrderStatus
+    status?: OrderStatus,
   ): Promise<Order[]> {
     const response = await api.get<Order[]>("/order", {
       params: {
@@ -39,5 +39,28 @@ export const orderApis = {
     });
 
     return response.data;
+  },
+
+  //Get all orders for admin
+  async getAllForAdmin(
+    keyWord?: string,
+    orderStatus?: OrderStatus,
+  ): Promise<Order[]> {
+    const params = new URLSearchParams();
+
+    if (keyWord) {
+      params.append("keyword", keyWord);
+    }
+
+    if (orderStatus) {
+      params.append("status", orderStatus);
+    }
+
+    const response = await api.get<Order[]>(`/order/all?${params.toString()}`);
+    return response.data;
+  },
+  //Updat order status
+  async updateStatus(orderId: number, status: OrderStatus): Promise<void> {
+    await api.patch(`/order/update/status/${orderId}/${status}`);
   },
 };
