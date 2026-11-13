@@ -7,6 +7,9 @@ import com.server.server.service.AddressService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,16 +22,20 @@ public class AddressController {
 
     //Endpoint  to get a specific address for a user
     @GetMapping("/{addressId}")
-    public ResponseEntity<AddressResponseDTO> getAddress(@RequestParam Long userId,
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public ResponseEntity<AddressResponseDTO> getAddress(@AuthenticationPrincipal Jwt jwt,
                                                          @PathVariable("addressId") Long addressId) {
+        Long userId = jwt.getClaim("userId");
         return ResponseEntity.ok(addressService.findAddressUsingUserIdAndAddressId(userId, addressId));
     }
 
     // Endpoint to add a new address
     @PostMapping("/add")
-    public ResponseEntity<AddressResponseDTO> addAddress(@RequestParam Long userId,
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public ResponseEntity<AddressResponseDTO> addAddress(@AuthenticationPrincipal Jwt jwt,
                                                          @RequestBody
                                                          CreateAddressRequestDTO dto) {
+        Long userId = jwt.getClaim("userId");
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(addressService.createAddress(dto, userId));
@@ -36,14 +43,19 @@ public class AddressController {
 
     //Get all addresses for a specific user
     @GetMapping("/user")
-    public ResponseEntity<List<AddressResponseDTO>> getUserAddresses(@RequestParam Long userId) {
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public ResponseEntity<List<AddressResponseDTO>> getUserAddresses(@AuthenticationPrincipal Jwt jwt) {
+        Long userId = jwt.getClaim("userId");
+
         return ResponseEntity.ok(addressService.getUserAddresses(userId));
     }
 
     //Delete an address for a specific user
     @DeleteMapping("/delete/{addressId}")
-    public ResponseEntity<Void> deleteAddress(@RequestParam Long userId,
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public ResponseEntity<Void> deleteAddress(@AuthenticationPrincipal Jwt jwt,
                                               @PathVariable("addressId") Long addressId) {
+        Long userId = jwt.getClaim("userId");
         addressService.deleteAddress(addressId, userId);
         return ResponseEntity.noContent()
                 .build();
@@ -52,9 +64,11 @@ public class AddressController {
 
     //Endpoint to update an existing address
     @PutMapping("/update/{addressId}")
-    public ResponseEntity<AddressResponseDTO> updateAddress(@RequestParam Long userId,
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public ResponseEntity<AddressResponseDTO> updateAddress(@AuthenticationPrincipal Jwt jwt,
                                                             @PathVariable("addressId") Long addressId,
                                                             @RequestBody UpdateAddressRequestDTO dto) {
+        Long userId = jwt.getClaim("userId");
         return ResponseEntity.ok(addressService.updateAddress(addressId, dto, userId));
     }
 }

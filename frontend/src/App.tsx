@@ -17,34 +17,51 @@ import OrdersPage from "./pages/user/OrderPage";
 import OrdersAdminPage from "./pages/admin/OrdersAdminPage";
 import AddProduct from "./pages/admin/AddProduct";
 import DealsPage from "./pages/user/DealsPage";
+import LoginPage from "./pages/user/LoginPage";
+import RegisterPage from "./pages/user/RegisterPage";
+import { AuthProvider } from "./context/AuthContext";
+import RequireRole from "./components/auth/RequireRole";
+import RequireAuth from "./components/auth/RequireAuth";
 
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        {/* Admin workspace */}
-        <Route path="admin" element={<AdminLayout />}>
-          <Route index element={<DashboardPage />} />
-          <Route path="users" element={<UsersPage />} />
-          <Route path="products" element={<ProductsPage />} />
-          <Route path="products/create" element={<AddProduct />} />
-          <Route path="orders" element={<OrdersAdminPage />} />
-          <Route path="categories" element={<CategoriesPage />} />
-          <Route path="coupons" element={<CouponsPage />} />
-          <Route path="attributes" element={<AttributesPage />} />
-        </Route>
-        {/* User interface */}
-        <Route element={<UserLayout />}>
-          <Route index element={<HomePage />} />
-          <Route path="shop" element={<ShopPage />} />
-          <Route path="deals" element={<DealsPage/>} />
-          <Route path="product/:id" element={<ProductDetailsPage />} />
-          <Route path="cart" element={<CartPage />} />
-          <Route path="addresses" element={<AddressPage />} />
-          <Route path="checkout" element={<CheckoutPage />} />
-          <Route path="orders" element={<OrdersPage />} />
-        </Route>
-      </Routes>
+      <AuthProvider>
+        <Routes>
+          {/* Admin workspace */}
+          <Route
+            path="admin"
+            element={<RequireRole allowedRoles={["ADMIN"]} />}
+          >
+            <Route element={<AdminLayout />}>
+              <Route index element={<DashboardPage />} />
+              <Route path="users" element={<UsersPage />} />
+              <Route path="products" element={<ProductsPage />} />
+              <Route path="products/create" element={<AddProduct />} />
+              <Route path="orders" element={<OrdersAdminPage />} />
+              <Route path="categories" element={<CategoriesPage />} />
+              <Route path="coupons" element={<CouponsPage />} />
+              <Route path="attributes" element={<AttributesPage />} />
+            </Route>
+          </Route>
+          <Route path="login" element={<LoginPage />} />
+          <Route path="register" element={<RegisterPage />} />
+          {/* User interface */}
+          <Route element={<UserLayout />}>
+            <Route index element={<HomePage />} />
+            <Route path="shop" element={<ShopPage />} />
+            <Route path="deals" element={<DealsPage />} />
+            <Route path="product/:id" element={<ProductDetailsPage />} />
+            {/* Authenticated user routes */}
+            <Route element={<RequireAuth />}>
+              <Route path="cart" element={<CartPage />} />
+              <Route path="addresses" element={<AddressPage />} />
+              <Route path="checkout" element={<CheckoutPage />} />
+              <Route path="orders" element={<OrdersPage />} />
+            </Route>
+          </Route>
+        </Routes>
+      </AuthProvider>
     </BrowserRouter>
   );
 }

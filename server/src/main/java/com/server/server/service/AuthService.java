@@ -27,7 +27,7 @@ public class AuthService {
     private final RoleRepo roleRepo;
 
     //Method to register user using local auth provider
-    public RegisterUserResponseDTO registerUser(RegisterUserDTO registerUserDTO) {
+    public void registerUser(RegisterUserDTO registerUserDTO) {
 
         boolean userAlreadyExists = userRepo.existsByEmail(registerUserDTO.getEmail());
         if (userAlreadyExists) {
@@ -53,12 +53,7 @@ public class AuthService {
                 .active(true)
                 .roles(List.of(role))
                 .build());
-        return RegisterUserResponseDTO.builder()
-                .id(user.getId())
-                .name(user.getName())
-                .email(user.getEmail())
-                .avatar(user.getAvatar())
-                .build();
+
 
     }
 

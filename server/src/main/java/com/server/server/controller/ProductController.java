@@ -6,8 +6,13 @@ import com.server.server.dto.ProductResponseDTO;
 import com.server.server.dto.UpdateProductRequestDTO;
 import com.server.server.service.ProductService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -23,6 +28,7 @@ public class ProductController {
 
     //Create product endpoint
     @PostMapping("/create")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ProductResponseDTO> createProduct(@RequestBody CreateProductRequestDTO dto) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(productService.createProduct(dto));
@@ -30,13 +36,14 @@ public class ProductController {
 
     //Endpoint to update existing product
     @PutMapping("/update/{productId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ProductResponseDTO> updateProduct(@PathVariable Long productId, @RequestBody UpdateProductRequestDTO product) {
         return ResponseEntity.ok(productService.updateProduct(productId, product));
     }
 
     //Fetch all products endpoint
     @GetMapping
-    public ResponseEntity<List<ProductResponseDTO>> getAllProducts(@RequestParam(required = false) String keyword,
+    public ResponseEntity<Page<ProductResponseDTO>> getAllProducts(@RequestParam(required = false) String keyword,
                                                                    @RequestParam(required = false) Long categoryId,
                                                                    @RequestParam(required = false) Set<Long> categoryIds,
 
@@ -46,9 +53,11 @@ public class ProductController {
                                                                    @RequestParam(required = false) Boolean inStock,
                                                                    @RequestParam(required = false) Integer stockMin,
                                                                    @RequestParam(required = false) Integer stockMax,
-                                                                   @RequestParam(required = false) Set<Long> attributeValueIds) {
+                                                                   @RequestParam(required = false) Set<Long> attributeValueIds,
+                                                                   @PageableDefault(size = 12, sort = "createdAt",
+                                                                           direction = Sort.Direction.DESC) Pageable pageable) {
         return ResponseEntity.ok(productService.getAllProducts(keyword, categoryIds, minPrice, maxPrice,
-                minRating, inStock, stockMin, stockMax, attributeValueIds));
+                minRating, inStock, stockMin, stockMax, attributeValueIds, pageable));
     }
 
 

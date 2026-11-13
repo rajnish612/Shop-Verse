@@ -11,7 +11,7 @@ import { productApis } from "../../services/products";
 import ProductGrid from "../../components/ProductsGrid";
 import { Search } from "lucide-react";
 import { useLocation } from "react-router";
-
+const PAGE_SIZE = 12;
 const ShopPage = () => {
   const location = useLocation();
   const data = location.state;
@@ -19,6 +19,7 @@ const ShopPage = () => {
   const [categoryIds, setCategoryIds] = React.useState<Set<number>>(
     new Set(data?.categoryId ? [data.categoryId] : []),
   );
+  const [isLoading, setLoading] = React.useState<boolean>(false);
   const [minPrice, setMinPrice] = React.useState("");
   const [maxPrice, setMaxPrice] = React.useState("");
   const [inStock, setInStock] = React.useState("");
@@ -30,10 +31,14 @@ const ShopPage = () => {
   const [attributes, setAttributes] = React.useState<ProductAttribute[]>([]);
   const [categories, setCategories] = React.useState<Category[]>([]);
   const [searchKeyword, setSearchKeyword] = React.useState<string>("");
-
+  // Pagination
+  const [page, setPage] = React.useState(0);
+  const [totalPages, setTotalPages] = React.useState(0);
+  const [totalElements, setTotalElements] = React.useState(0);
   // Assuming categories and attributes are fetched in ShopPage
 
   const handleSelectCategories = (id: number) => {
+    setPage(0);
     setCategoryIds((current) => {
       const next = new Set(current);
 
@@ -45,6 +50,7 @@ const ShopPage = () => {
   };
 
   const toggleAttributeValue = (id: number) => {
+    setPage(0);
     setAttributeValueIds((current) => {
       const next = new Set(current);
 
@@ -56,6 +62,7 @@ const ShopPage = () => {
   };
 
   const resetFilters = () => {
+    setPage(0);
     setCategoryIds(new Set());
     setMinPrice("");
     setMaxPrice("");
@@ -65,6 +72,7 @@ const ShopPage = () => {
   };
 
   const applyFilters = () => {
+    setPage(0);
     // Call your product API here using the selected filter values.
   };
 
@@ -100,10 +108,16 @@ const ShopPage = () => {
         stockMax: undefined,
         minPrice: minPrice ? Number(minPrice) : undefined,
         maxPrice: maxPrice ? Number(maxPrice) : undefined,
+        page,
+        size: PAGE_SIZE,
         minRating: minRating ? Number(minRating) : undefined,
       })
       .then((data) => {
-        setProducts(data);
+        console.log("data", data);
+
+        setProducts(data.content);
+        setTotalPages(data.totalPages);
+        setTotalElements(data.totalElements);
       })
       .catch((err) => {
         console.log("err fetching products", err);
@@ -116,7 +130,17 @@ const ShopPage = () => {
     minPrice,
     maxPrice,
     minRating,
+    page,
   ]);
+  // Generate a maximum of 5 page buttons
+  const pageNumbers = React.useMemo(() => {
+    const start = Math.max(0, Math.min(page - 2, totalPages - 5));
+
+    return Array.from(
+      { length: Math.min(5, totalPages) },
+      (_, index) => start + index,
+    );
+  }, [page, totalPages]);
   return (
     <div className="mx-auto max-w-7xl px-4 py-6">
       {/* Search Bar */}
@@ -166,11 +190,73 @@ const ShopPage = () => {
             </h1>
 
             <span className="text-sm text-text-muted">
-              {products.length} products
+              {totalElements} products
             </span>
           </div>
 
-          <ProductGrid products={products} />
+          {isLoading ? (
+            <div className="py-16 text-center text-text-secondary">
+              Loading products...
+            </div>
+          ) : products.length > 0 ? (
+            <>
+              <ProductGrid products={products} />
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="mt-10 flex flex-wrap items-center justify-center gap-2">
+                  <button
+                    type="button"
+                    disabled={page === 0}
+                    onClick={() => setPage((current) => current - 1)}
+                    className="rounded-lg border border-border px-4 py-2 text-sm text-text-primary transition hover:bg-surface-alt disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    Previous
+                  </button>
+
+                  {pageNumbers.map((pageNumber) => (
+                    <button
+                      key={pageNumber}
+                      type="button"
+                      onClick={() => setPage(pageNumber)}
+                      className={`h-10 min-w-10 rounded-lg border px-3 text-sm font-medium transition ${
+                        page === pageNumber
+                          ? "border-primary bg-primary text-white"
+                          : "border-border text-text-primary hover:bg-surface-alt"
+                      }`}
+                    >
+                      {pageNumber + 1}
+                    </button>
+                  ))}
+
+                  <button
+                    type="button"
+                    disabled={page >= totalPages - 1}
+                    onClick={() => setPage((current) => current + 1)}
+                    className="rounded-lg border border-border px-4 py-2 text-sm text-text-primary transition hover:bg-surface-alt disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+
+              {/* Results information */}
+              <p className="mt-4 text-center text-xs text-text-muted">
+                Showing {page * PAGE_SIZE + 1}–
+                {Math.min((page + 1) * PAGE_SIZE, totalElements)} of{" "}
+                {totalElements} products
+              </p>
+            </>
+          ) : (
+            <div className="py-16 text-center">
+              <p className="text-lg font-semibold text-text-primary">
+                No products found
+              </p>
+              <p className="mt-2 text-sm text-text-muted">
+                Try changing your search or filters.
+              </p>
+            </div>
+          )}
         </section>
       </div>
     </div>

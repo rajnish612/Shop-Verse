@@ -15,6 +15,8 @@ import com.server.server.repository.ProductRepo;
 import com.server.server.specification.ProductSpecification;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.Nullable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -63,7 +65,7 @@ public class ProductService {
     }
 
     //Get all products
-    public List<ProductResponseDTO> getAllProducts(String keyword,
+    public Page<ProductResponseDTO> getAllProducts(String keyword,
                                                    Set<Long> categoryIds,
 
                                                    BigDecimal minPrice,
@@ -72,7 +74,7 @@ public class ProductService {
                                                    Boolean inStock,
                                                    Integer stockMin,
                                                    Integer stockMax,
-                                                   Set<Long> attributeValueIds) {
+                                                   Set<Long> attributeValueIds, Pageable pageable) {
         Set<Long> expandedCategoryIds = new HashSet<>();
         if (categoryIds != null && !categoryIds.isEmpty()) {
             for (Long categoryId : categoryIds) {
@@ -81,17 +83,17 @@ public class ProductService {
                 );
             }
         }
-        List<Product> products = productRepo.findAll(ProductSpecification.keyword(keyword)
+        Page<Product> products = productRepo.findAll(ProductSpecification.keyword(keyword)
                 .and(ProductSpecification.categoryIds(expandedCategoryIds))
                 .and(ProductSpecification.priceRange(minPrice, maxPrice))
                 .and(ProductSpecification.minimumRating(minRating))
                 .and(ProductSpecification.inStock(inStock))
                 .and(ProductSpecification.stockRange(stockMin, stockMax))
-                .and(ProductSpecification.attributeValueIds(attributeValueIds)));
+                .and(ProductSpecification.attributeValueIds(attributeValueIds)), pageable);
 
-        return products.stream()
-                .map(this::toProductResponseDTO)
-                .collect(Collectors.toList());
+        return products
+                .map(this::toProductResponseDTO);
+
     }
 
     //Get latest deals of products

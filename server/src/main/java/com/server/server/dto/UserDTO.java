@@ -12,7 +12,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserDetailsResponseDTO {
+public class UserDTO {
 
     private Long id;
     private String email;

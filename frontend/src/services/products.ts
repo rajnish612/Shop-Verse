@@ -32,6 +32,19 @@ export interface ProductSearchFilters {
   stockMin?: number;
   stockMax?: number;
   attributeValueIds?: number[];
+
+  page?: number;
+  size?: number;
+}
+export interface PaginatedResponse<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+  first: boolean;
+  last: boolean;
+  empty: boolean;
 }
 
 export const productApis = {
@@ -41,7 +54,9 @@ export const productApis = {
     return data;
   },
   //Get all products
-  async getAll(filters: ProductSearchFilters = {}): Promise<Product[]> {
+  async getAll(
+    filters: ProductSearchFilters = {},
+  ): Promise<PaginatedResponse<Product>> {
     const params = new URLSearchParams();
     if (filters.keyword) params.set("keyword", filters.keyword);
     // if (filters.categoryId !== undefined) params.set('categoryId', String(filters.categoryId));
@@ -61,11 +76,14 @@ export const productApis = {
       params.set("stockMin", String(filters.stockMin));
     if (filters.stockMax !== undefined)
       params.set("stockMax", String(filters.stockMax));
+    if (filters.page !== undefined) params.set("page", String(filters.page));
+
+    if (filters.size !== undefined) params.set("size", String(filters.size));
     filters.attributeValueIds?.forEach((id) =>
       params.append("attributeValueIds", String(id)),
     );
     const query = params.toString();
-    const { data } = await api.get<Product[]>(
+    const { data } = await api.get<PaginatedResponse<Product>>(
       `/product${query ? `?${query}` : ""}`,
     );
     return data;

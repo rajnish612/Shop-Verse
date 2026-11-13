@@ -19,7 +19,7 @@ export const cartApis = {
 
   //Get all cart items
   async getAll(): Promise<CartItem[]> {
-    const { data } = await api.get(`/cart/items/${1}`);
+    const { data } = await api.get(`/cart/items`);
     return data;
   },
 };

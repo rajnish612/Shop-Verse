@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -21,6 +22,7 @@ public class CouponController {
     private final CouponService couponService;
 
     @PostMapping("/create")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CouponResponseDTO> createCoupon(@Valid @RequestBody CouponRequestDTO dto) {
         // Logic to create a coupon
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -30,6 +32,7 @@ public class CouponController {
 
     //Endpoint to get all coupons with optional filters
     @GetMapping
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<List<CouponResponseDTO>> getAllCoupons(
             @RequestParam(required = false) String code,
             @RequestParam(required = false) Boolean active,
@@ -50,12 +53,14 @@ public class CouponController {
 
     //Endpoint to update the active status of a coupon
     @PatchMapping("/{couponId}/status")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CouponResponseDTO> updateCouponStatus(@PathVariable Long couponId, @RequestParam Boolean active) {
         return ResponseEntity.ok(couponService.updateCouponStatus(couponId, active));
     }
 
     //Endpoint to get a coupon by its code
     @GetMapping("/code/{code}")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<CouponResponseDTO> getCouponByCode(@PathVariable String code) {
         return ResponseEntity.ok(couponService.getCouponByCode(code));
     }

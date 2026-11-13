@@ -65,7 +65,7 @@ const ProductsPage: React.FC = () => {
       .then((data) => {
         console.log("data", data);
 
-        setProducts(data);
+        setProducts(data.content);
       })
       .catch((err) => {
         console.log("err fetching products", err);

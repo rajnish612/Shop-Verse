@@ -6,6 +6,7 @@ import com.server.server.service.ProductAttributeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,6 +26,7 @@ public class AttributeController {
 
     //Endpoint for creating a new product attribute
     @PostMapping("/create")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AttributeResponseDTO> createProductAttribute(@RequestBody CreateAttributeRequestDTO dto) {
         // Implementation for creating a product attribute will go here
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -33,6 +35,7 @@ public class AttributeController {
 
     //Endpoint for updating an existing product attribute
     @PatchMapping("/update/attribute-name/{attributeId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AttributeResponseDTO> updateProductAttributeName(@PathVariable Long attributeId, @RequestParam String name) {
         // Implementation for creating a product attribute will go here
         return ResponseEntity.status(HttpStatus.OK)
@@ -42,6 +45,7 @@ public class AttributeController {
 
     //Endpoint for adding a new attribute value to an existing product attribute
     @PutMapping("/add/attribute-value/{attributeId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<Long, String>> addProductAttributeValue(@PathVariable Long attributeId, @RequestParam String value) {
         // Implementation for creating a product attribute will go here
         return ResponseEntity.status(HttpStatus.OK)
@@ -51,6 +55,7 @@ public class AttributeController {
 
     //Endpoint to remove attribute values from an existing product attribute
     @DeleteMapping("/delete/attribute-value/{valueId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteAttributeValues(@PathVariable Long valueId
     ) {
         productAttributeService.deleteAttributeValue(valueId);
@@ -60,6 +65,7 @@ public class AttributeController {
 
     //Endpoint for deleting a product attribute
     @DeleteMapping("/delete/attribute/{attributeId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteProductAttribute(@PathVariable Long attributeId) {
         productAttributeService.deleteAttribute(attributeId);
         return ResponseEntity.noContent()

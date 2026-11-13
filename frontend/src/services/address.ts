@@ -13,7 +13,7 @@ export const addressesApi = {
   //get address by userId
   async getByUser(userId: number): Promise<Address[]> {
     const { data } = await api.get<Address[]>(
-      `/address/user?userId=${encodeURIComponent(userId)}`,
+      `/address/user`,
     );
     return data;
   },

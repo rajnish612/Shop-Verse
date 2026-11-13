@@ -5,6 +5,7 @@ import com.server.server.dto.ReviewResponseDTO;
 import com.server.server.service.ReviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,6 +26,7 @@ public class ReviewController {
 
     //Endpoint to create a new review for a product
     @PostMapping("/product/{productId}")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<ReviewResponseDTO> createReview(@PathVariable Long productId, @RequestBody CreateReviewRequestDTO dto, @RequestParam Long userId) {
         ReviewResponseDTO createdReview = reviewService.createReview(dto, userId);
         return ResponseEntity.ok(createdReview);

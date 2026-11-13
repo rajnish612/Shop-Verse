@@ -3,7 +3,7 @@ package com.server.server.service;
 
 import com.server.server.domain.RoleType;
 import com.server.server.dto.AddressResponseDTO;
-import com.server.server.dto.UserDetailsResponseDTO;
+import com.server.server.dto.UserDTO;
 import com.server.server.entity.Role;
 import com.server.server.entity.User;
 import com.server.server.exception.ApiException;
@@ -12,7 +12,6 @@ import com.server.server.repository.UserRepo;
 import com.server.server.specification.UserDetailsSpecification;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.jspecify.annotations.Nullable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -30,7 +29,7 @@ public class UserService {
 
     //Update role of user
     @Transactional
-    public UserDetailsResponseDTO updateRole(Long userId, List<RoleType> roles) {
+    public UserDTO updateRole(Long userId, List<RoleType> roles) {
         User user = userRepo.findById(userId)
                 .orElseThrow(() ->
                         new ApiException("User not found", HttpStatus.NOT_FOUND));
@@ -69,7 +68,7 @@ public class UserService {
     }
 
     //Get all users
-    public List<UserDetailsResponseDTO> getAllUsers(String keyword, RoleType roleType, Boolean isActive) {
+    public List<UserDTO> getAllUsers(String keyword, RoleType roleType, Boolean isActive) {
         System.out.println("isActive: " + isActive);
         Specification<User> spec = UserDetailsSpecification.search(keyword)
                 .and(UserDetailsSpecification.isActive(isActive));
@@ -88,10 +87,16 @@ public class UserService {
                 .toList();
     }
 
+    //Get current user details
+    public UserDTO getCurrentUserDetails(Long userId) {
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new ApiException("User not found", HttpStatus.NOT_FOUND));
+        return toUserDetailsResponseDTO(user);
+    }
 
     //Convert user entity to user details response dto
-    public UserDetailsResponseDTO toUserDetailsResponseDTO(User user) {
-        return UserDetailsResponseDTO.builder()
+    public UserDTO toUserDetailsResponseDTO(User user) {
+        return UserDTO.builder()
                 .id(user.getId())
                 .name(user.getName())
                 .email(user.getEmail())
@@ -123,7 +128,7 @@ public class UserService {
 
     //Update user status (active/inactive)
     @Transactional
-    public UserDetailsResponseDTO updateStatus(Long userId, boolean active) {
+    public UserDTO updateStatus(Long userId, boolean active) {
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new ApiException("User not found", HttpStatus.NOT_FOUND));
 

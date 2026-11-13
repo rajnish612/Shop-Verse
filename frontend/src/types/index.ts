@@ -43,12 +43,14 @@ export interface Address {
 
 export interface User {
   id: number;
-  name: string;
   email: string;
+  roles: string[];
+  name: string;
   avatar: string;
+  active: boolean;
   googleLinked: boolean;
-  roles: Role[];
   addresses: Address[];
+  joinedAt: string;
 }
 
 export interface Category {
