@@ -15,6 +15,8 @@ import com.server.server.repository.ProductRepo;
 import com.server.server.specification.ProductSpecification;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.Nullable;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -57,6 +59,10 @@ public class ProductService {
     }
 
     //Update product details
+    @CacheEvict(
+            cacheNames = "productDetails",
+            key = "#p0"
+    )
     public ProductResponseDTO updateProduct(Long productId, UpdateProductRequestDTO product) {
         Product existingProduct = productRepo.findById(productId)
                 .orElseThrow(() -> new ApiException("Product not found", HttpStatus.NOT_FOUND));
@@ -106,6 +112,10 @@ public class ProductService {
     }
 
     //Get product by productId
+    @Cacheable(
+            cacheNames = "productDetails",
+            key = "#p0"
+    )
     public ProductResponseDTO getProductByProductId(Long productId) {
         return productRepo.findById(productId)
                 .map(this::toProductResponseDTO)

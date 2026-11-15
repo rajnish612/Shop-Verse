@@ -10,6 +10,8 @@ import com.server.server.repository.ProductAttributeValueRepo;
 import com.server.server.repository.ProductRepo;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +27,10 @@ public class ProductAttributeService {
     private final ProductRepo productRepo;
 
     //Get all attributes
+    @Cacheable(
+            cacheNames = "attributes",
+            key = "'all'"
+    )
     public List<AttributeResponseDTO> getAllAttributes() {
         return productAttributeRepo.findAll()
                 .stream()
@@ -35,6 +41,10 @@ public class ProductAttributeService {
 
     //Create attributes
     @Transactional
+    @CacheEvict(
+            cacheNames = "attributes",
+            allEntries = true
+    )
     public AttributeResponseDTO createAttributes(CreateAttributeRequestDTO createAttributeRequestDTO) {
 
         ProductAttribute productAttribute = ProductAttribute.builder()
@@ -58,6 +68,10 @@ public class ProductAttributeService {
 
 
     //Update attributes
+    @CacheEvict(
+            cacheNames = "attributes",
+            allEntries = true
+    )
     public AttributeResponseDTO updateAttributeName(Long attributeId, String newName) {
         ProductAttribute productAttribute = productAttributeRepo.findById(attributeId)
                 .orElseThrow(() -> new ApiException("Product attribute not found", HttpStatus.NOT_FOUND));
@@ -69,6 +83,10 @@ public class ProductAttributeService {
 
     //Add attribute values
     @Transactional
+    @CacheEvict(
+            cacheNames = "attributes",
+            allEntries = true
+    )
     public Map<Long, String> addAttributeValue(Long attributeId, String value) {
         ProductAttribute productAttribute = productAttributeRepo.findById(attributeId)
                 .orElseThrow(() -> new ApiException(

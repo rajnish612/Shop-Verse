@@ -10,6 +10,8 @@ import com.server.server.projection.CategoryCountProjection;
 import com.server.server.repository.CategoryRepo;
 import com.server.server.repository.ProductRepo;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +29,10 @@ public class CategoryService {
 
 
     //Retrieve all categories from the database and convert them to response DTOs
+    @Cacheable(
+            cacheNames = "categories",
+            key = "'all'"
+    )
     public List<CategoryResponseDTO> getAllCategories() {
         List<Category> categories = categoryRepo.findAll();
         Map<Long, CategoryResponseDTO> categoryMap = new HashMap<>();
@@ -78,6 +84,10 @@ public class CategoryService {
 
 
     //Create category
+    @CacheEvict(
+            cacheNames = "categories",
+            allEntries = true
+    )
     public CategoryResponseDTO createCategory(CategoryRequestDTO request) {
         String code = normalizeCode(request.getCode());
         if (categoryRepo.existsByCodeIgnoreCase(code)) {
@@ -96,6 +106,10 @@ public class CategoryService {
 
 
     //Update category
+    @CacheEvict(
+            cacheNames = "categories",
+            allEntries = true
+    )
     public CategoryResponseDTO updateCategory(Long categoryId, CategoryRequestDTO request) {
         Category category = findCategory(categoryId);
         String code = normalizeCode(request.getCode());

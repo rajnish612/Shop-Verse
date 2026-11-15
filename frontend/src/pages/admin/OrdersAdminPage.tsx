@@ -19,7 +19,6 @@ type StatusFilter = OrderStatus | "ALL";
 
 const STATUS_OPTIONS: { label: string; value: StatusFilter }[] = [
   { label: "All orders", value: "ALL" },
-  { label: "Pending", value: OrderStatus.PENDING },
   { label: "Confirmed", value: OrderStatus.CONFIRMED },
   { label: "Processing", value: OrderStatus.PROCESSING },
   { label: "Shipped", value: OrderStatus.SHIPPED },
@@ -65,7 +64,6 @@ const getStatusStyle = (status: OrderStatus) => {
     case OrderStatus.CANCELLED:
       return "bg-red-50 text-red-700 ring-red-600/20";
 
-    case OrderStatus.PENDING:
     default:
       return "bg-yellow-50 text-yellow-700 ring-yellow-600/20";
   }
