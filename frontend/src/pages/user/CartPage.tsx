@@ -8,6 +8,8 @@ import {
   CheckCircle2,
   AlertCircle,
   ShieldCheck,
+  Plus,
+  Minus,
 } from "lucide-react";
 
 import { formatPrice, getDiscountedPrice } from "../../utils/helperFunctions";
@@ -20,7 +22,14 @@ const CartPage: React.FC = () => {
   const [items, setItems] = useState<CartItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [updatingCartItemId, setUpdatingCartItemId] = useState<number | null>(
+    null,
+  );
 
+  const [quantityError, setQuantityError] = useState<{
+    cartItemId: number;
+    message: string;
+  } | null>(null);
   // Coupon states
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
@@ -116,7 +125,56 @@ const CartPage: React.FC = () => {
 
   // Final payable amount
   const grandTotal = Math.max(0, discountedItemsTotal - couponDiscount);
+  //Increase quantity of item
+  const handleIncreaseQuantity = async (cartItemId: number) => {
+    try {
+      setUpdatingCartItemId(cartItemId);
+      setQuantityError(null);
 
+      const updatedItem = await cartApis.increaseQuantity(cartItemId);
+
+      setItems((current) =>
+        current.map((item) =>
+          item.cartItemId === cartItemId ? updatedItem : item,
+        ),
+      );
+    } catch (error) {
+      setQuantityError({
+        cartItemId,
+        message:
+          error instanceof Error
+            ? error.message
+            : "Unable to increase quantity.",
+      });
+    } finally {
+      setUpdatingCartItemId(null);
+    }
+  };
+  // Decrease quantity of item
+  const handleDecreaseQuantity = async (cartItemId: number) => {
+    try {
+      setUpdatingCartItemId(cartItemId);
+      setQuantityError(null);
+
+      const updatedItem = await cartApis.decreaseQuantity(cartItemId);
+
+      setItems((current) =>
+        current.map((item) =>
+          item.cartItemId === cartItemId ? updatedItem : item,
+        ),
+      );
+    } catch (error) {
+      setQuantityError({
+        cartItemId,
+        message:
+          error instanceof Error
+            ? error.message
+            : "Unable to decrease quantity.",
+      });
+    } finally {
+      setUpdatingCartItemId(null);
+    }
+  };
   // Loading state
   if (isLoading) {
     return (
@@ -246,16 +304,61 @@ const CartPage: React.FC = () => {
                         ))}
                       </div>
                     )}
-
                     {/* Quantity */}
-                    <div className="flex items-center gap-2 mt-4">
-                      <span className="text-xs text-text-secondary">
-                        Quantity:
-                      </span>
+                    <div className="mt-4">
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-text-secondary">
+                          Quantity:
+                        </span>
 
-                      <span className="text-sm font-semibold text-text-primary">
-                        {item.quantity}
-                      </span>
+                        <div className="inline-flex items-center overflow-hidden rounded-lg border border-border">
+                          {/* Decrease */}
+                          <button
+                            type="button"
+                            disabled={
+                              item.quantity <= 1 ||
+                              updatingCartItemId === item.cartItemId
+                            }
+                            onClick={() =>
+                              handleDecreaseQuantity(item.cartItemId)
+                            }
+                            aria-label="Decrease quantity"
+                            className="flex h-9 w-9 items-center justify-center text-text-secondary transition hover:bg-surface-hover hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
+                          >
+                            {updatingCartItemId === item.cartItemId ? (
+                              <Loader2 size={15} className="animate-spin" />
+                            ) : (
+                              <Minus size={15} />
+                            )}
+                          </button>
+
+                          {/* Current Quantity */}
+                          <span className="min-w-10 border-x border-border px-3 py-1.5 text-center text-sm font-semibold text-text-primary">
+                            {item.quantity}
+                          </span>
+
+                          {/* Increase */}
+                          <button
+                            type="button"
+                            disabled={updatingCartItemId === item.cartItemId}
+                            onClick={() =>
+                              handleIncreaseQuantity(item.cartItemId)
+                            }
+                            aria-label="Increase quantity"
+                            className="flex h-9 w-9 items-center justify-center text-text-secondary transition hover:bg-primary hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                          >
+                            <Plus size={15} />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Quantity Error */}
+                      {quantityError?.cartItemId === item.cartItemId && (
+                        <p className="mt-2 flex items-center gap-1.5 text-xs text-danger">
+                          <AlertCircle size={13} />
+                          {quantityError.message}
+                        </p>
+                      )}
                     </div>
                   </div>
 

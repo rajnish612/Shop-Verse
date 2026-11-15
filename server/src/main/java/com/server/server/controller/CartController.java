@@ -38,4 +38,30 @@ public class CartController {
         Long userId = jwt.getClaim("userId");
         return ResponseEntity.ok(cartService.getCartItems(userId));
     }
+
+    //Endpoint Increase quantity of a cart item
+    @PatchMapping("/items/{cartItemId}/increase")
+    public ResponseEntity<CartItemResponseDTO> increaseQuantity(
+            @PathVariable Long cartItemId,
+            @AuthenticationPrincipal Jwt jwt) {
+
+        Long userId = jwt.getClaim("userId");
+
+        return ResponseEntity.ok(
+                cartService.increaseQuantity(cartItemId, userId)
+        );
+    }
+
+    //Endpoint Decrease quantity of a cart item
+    @PatchMapping("/items/{cartItemId}/decrease")
+    public ResponseEntity<CartItemResponseDTO> decreaseQuantity(
+            @PathVariable Long cartItemId,
+            @AuthenticationPrincipal Jwt jwt) {
+
+        Long userId = jwt.getClaim("userId");
+
+        return ResponseEntity.ok(
+                cartService.decreaseQuantity(cartItemId, userId)
+        );
+    }
 }

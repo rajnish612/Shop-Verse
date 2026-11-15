@@ -1,7 +1,6 @@
 // ==================== ENUMS ====================
 
 export enum OrderStatus {
-  PENDING = "PENDING",
   CONFIRMED = "CONFIRMED",
   PROCESSING = "PROCESSING",
   SHIPPED = "SHIPPED",
@@ -158,6 +157,7 @@ export interface Order {
 
   orderStatus: OrderStatus;
   orderDate: string;
+  orderNumber: string;
   deliveryDate: string;
 
   shippingAddress: Address;

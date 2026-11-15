@@ -17,6 +17,7 @@ export const LoginPage: React.FC = () => {
     setIsLoading(true);
     try {
       await authApis.loginUser({ email, password });
+      navigate("/");
     } catch (err) {
       console.log("error logging user", err);
     } finally {

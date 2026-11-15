@@ -211,6 +211,7 @@ const OrdersAdminPage: React.FC = () => {
               <tr className="text-xs font-semibold uppercase tracking-wide text-gray-500">
                 <th className="w-12 px-4 py-4"></th>
                 <th className="px-5 py-4">Order</th>
+                <th className="px-5 py-4">Order Number</th>
                 <th className="px-5 py-4">Customer</th>
                 <th className="px-5 py-4">Date</th>
                 <th className="px-5 py-4">Items</th>
@@ -277,6 +278,12 @@ const OrdersAdminPage: React.FC = () => {
                         <td className="whitespace-nowrap px-5 py-4">
                           <span className="font-semibold text-gray-900">
                             #{order.id}
+                          </span>
+                        </td>
+                        {/* Order Number */}
+                        <td className="whitespace-nowrap px-5 py-4">
+                          <span className="font-semibold text-gray-900">
+                            {order.orderNumber}
                           </span>
                         </td>
 

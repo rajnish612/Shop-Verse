@@ -21,7 +21,7 @@ public class OrderResponseDTO {
     private Long userId;
     private String userName;
     private String userEmail;
-
+    private String orderNumber;
     private OrderStatus orderStatus;
 
     private LocalDateTime orderDate;

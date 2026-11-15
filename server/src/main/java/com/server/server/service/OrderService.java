@@ -318,6 +318,7 @@ public class OrderService {
                         .getEmail())
                 .orderStatus(order.getOrderStatus())
                 .orderDate(order.getOrderDate())
+                .orderNumber(order.getOrderNumber())
                 .deliveryDate(order.getDeliveryDate())
                 .shippingAddress(addressDTO)
                 .paymentMethod(paymentDetails.getPaymentMethod())

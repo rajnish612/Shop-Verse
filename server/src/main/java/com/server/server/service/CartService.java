@@ -194,6 +194,65 @@ public class CartService {
 
     }
 
+    @Transactional
+    public CartItemResponseDTO increaseQuantity(Long cartItemId, Long userId) {
+
+        CartItem cartItem = cartItemRepo
+                .findByIdAndCartUserId(cartItemId, userId)
+                .orElseThrow(() ->
+                        new ApiException(
+                                "Cart item not found",
+                                HttpStatus.NOT_FOUND
+
+                        )
+                );
+
+        Product product = cartItem.getProduct();
+
+        int newQuantity = cartItem.getQuantity() + 1;
+
+        // Check available stock
+        if (newQuantity > product.getStockQuantity()) {
+            throw new ApiException(
+
+                    "Insufficient stock available",
+                    HttpStatus.CONFLICT
+            );
+        }
+
+        cartItem.setQuantity(newQuantity);
+
+        cartItemRepo.save(cartItem);
+
+        return mapToCartItemResponse(cartItem);
+    }
+
+
+    //Decrease quantity of a cart item
+    @Transactional
+    public CartItemResponseDTO decreaseQuantity(Long cartItemId, Long userId) {
+
+        CartItem cartItem = cartItemRepo
+                .findByIdAndCartUserId(cartItemId, userId)
+                .orElseThrow(() ->
+                        new ApiException(
+                                "Cart item not found",
+                                HttpStatus.NOT_FOUND
+                        )
+                );
+
+        if (cartItem.getQuantity() <= 1) {
+            throw new ApiException(
+                    "Quantity cannot be less than 1",
+                    HttpStatus.BAD_REQUEST
+            );
+        }
+
+        cartItem.setQuantity(cartItem.getQuantity() - 1);
+
+        return mapToCartItemResponse(cartItem);
+    }
+
     //Get all cart items
     public List<CartItemResponseDTO> getCartItems(Long userId) {
 

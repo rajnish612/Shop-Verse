@@ -9,11 +9,7 @@ export interface AddToCartRequest {
 export const cartApis = {
   //Add product to cart
   async addToCart(data: AddToCartRequest): Promise<CartItem> {
-    const response = await api.post<CartItem>("/cart/add", data, {
-      params: {
-        userId: 1,
-      },
-    });
+    const response = await api.post<CartItem>("/cart/add", data);
     return response.data;
   },
 
@@ -21,5 +17,21 @@ export const cartApis = {
   async getAll(): Promise<CartItem[]> {
     const { data } = await api.get(`/cart/items`);
     return data;
+  },
+  // Increase cart item quantity by 1
+  async increaseQuantity(cartItemId: number): Promise<CartItem> {
+    const response = await api.patch<CartItem>(
+      `/cart/items/${cartItemId}/increase`,
+    );
+    return response.data;
+  },
+
+  // Decrease cart item quantity by 1
+  async decreaseQuantity(cartItemId: number): Promise<CartItem> {
+    const response = await api.patch<CartItem>(
+      `/cart/items/${cartItemId}/decrease`,
+    );
+
+    return response.data;
   },
 };

@@ -24,6 +24,12 @@ const ProductsPage: React.FC = () => {
   const [editingProduct, setEditingProduct] = React.useState<Product | null>(
     null,
   );
+  //For pagination
+  const [page, setPage] = React.useState(0);
+  const [pageSize, setPageSize] = React.useState(10);
+  const [totalPages, setTotalPages] = React.useState(0);
+  const [totalElements, setTotalElements] = React.useState(0);
+  const [productsLoading, setProductsLoading] = React.useState(false);
   //For filters
   const [searchKeyword, setSearchKeyword] = React.useState("");
   const [attributeValueIds, setAttributeValueIds] = React.useState<Set<number>>(
@@ -61,11 +67,14 @@ const ProductsPage: React.FC = () => {
         minPrice: minPrice ? Number(minPrice) : undefined,
         maxPrice: maxPrice ? Number(maxPrice) : undefined,
         minRating: minRating ? Number(minRating) : undefined,
+        page,
+        size: pageSize,
       })
       .then((data) => {
-        console.log("data", data);
 
         setProducts(data.content);
+        setTotalPages(data.totalPages);
+        setTotalElements(data.totalElements);
       })
       .catch((err) => {
         console.log("err fetching products", err);
@@ -80,6 +89,8 @@ const ProductsPage: React.FC = () => {
     minPrice,
     maxPrice,
     minRating,
+    page,
+    pageSize,
   ]);
   //Fetch all categories
   React.useEffect(() => {
@@ -93,6 +104,7 @@ const ProductsPage: React.FC = () => {
 
   //Select category filter
   const handleSelectCategories = (id: number): void => {
+    setPage(0);
     setCategoryIds((current) => {
       const next = new Set(current);
 
@@ -107,6 +119,7 @@ const ProductsPage: React.FC = () => {
   };
   //Toggle attribute filter
   const toggleAttributeValue = (valueId: number) => {
+    setPage(0);
     setAttributeValueIds((current) => {
       const next = new Set(current);
 
@@ -181,7 +194,10 @@ const ProductsPage: React.FC = () => {
         <div className="grid grid-cols-1  gap-3 md:grid-cols-2 lg:grid-cols-4">
           <input
             value={searchKeyword}
-            onChange={(event) => setSearchKeyword(event.target.value)}
+            onChange={(event) => {
+              setPage(0);
+              setSearchKeyword(event.target.value);
+            }}
             placeholder="Search products..."
             className="rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text-primary"
           />
@@ -413,7 +429,70 @@ const ProductsPage: React.FC = () => {
           </tbody>
         </table>
       </div>
+      {/* Pagination */}
+      <div className="flex flex-col gap-4 rounded-xl border border-border bg-surface p-4 sm:flex-row sm:items-center sm:justify-between">
+        {/* Results information */}
+        <p className="text-sm text-text-secondary">
+          Showing{" "}
+          <span className="font-semibold text-text-primary">
+            {totalElements === 0 ? 0 : page * pageSize + 1}
+          </span>
+          {" - "}
+          <span className="font-semibold text-text-primary">
+            {Math.min((page + 1) * pageSize, totalElements)}
+          </span>
+          {" of "}
+          <span className="font-semibold text-text-primary">
+            {totalElements}
+          </span>
+          {" products"}
+        </p>
 
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Page size */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-text-secondary">Rows per page</span>
+
+            <select
+              value={pageSize}
+              onChange={(event) => {
+                setPageSize(Number(event.target.value));
+                setPage(0);
+              }}
+              className="rounded-lg border border-border bg-surface px-2 py-1.5 text-sm text-text-primary"
+            >
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+          </div>
+
+          {/* Previous */}
+          <button
+            type="button"
+            disabled={page === 0 || productsLoading}
+            onClick={() => setPage((current) => current - 1)}
+            className="rounded-lg border border-border px-3 py-1.5 text-sm font-medium text-text-primary transition hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Previous
+          </button>
+
+          {/* Current page */}
+          <span className="text-sm text-text-secondary">
+            Page {totalPages === 0 ? 0 : page + 1} of {totalPages}
+          </span>
+
+          {/* Next */}
+          <button
+            type="button"
+            disabled={page >= totalPages - 1 || productsLoading}
+            onClick={() => setPage((current) => current + 1)}
+            className="rounded-lg border border-border px-3 py-1.5 text-sm font-medium text-text-primary transition hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Next
+          </button>
+        </div>
+      </div>
       {/* Edit product modal */}
       {editingProduct && (
         <ProductEditModal

@@ -22,6 +22,7 @@ import RegisterPage from "./pages/user/RegisterPage";
 import { AuthProvider } from "./context/AuthContext";
 import RequireRole from "./components/auth/RequireRole";
 import RequireAuth from "./components/auth/RequireAuth";
+import ProfilePage from "./pages/user/ProfilePage";
 
 function App() {
   return (
@@ -55,6 +56,7 @@ function App() {
             {/* Authenticated user routes */}
             <Route element={<RequireAuth />}>
               <Route path="cart" element={<CartPage />} />
+              <Route path="profile" element={<ProfilePage />} />
               <Route path="addresses" element={<AddressPage />} />
               <Route path="checkout" element={<CheckoutPage />} />
               <Route path="orders" element={<OrdersPage />} />
