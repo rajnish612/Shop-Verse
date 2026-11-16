@@ -12,6 +12,7 @@ import {
   validateProductCreationForm,
   type ProductFormErrors,
 } from "../../utils/helperFunctions";
+import { uploadImage } from "../../services/cloudinary";
 
 const AddProduct: React.FC = () => {
   const [isEditing, setIsEditing] = React.useState<boolean>(false);
@@ -26,7 +27,7 @@ const AddProduct: React.FC = () => {
     discount: 0,
     stockQuantity: 0,
     imageUrls: [],
-    attributeValueIds: new Set(),
+    attributeValueIds: new Set<number>(),
   });
   const [saving, setIsSaving] = React.useState<boolean>(false);
   const [selectedCategoryId, setSelectedCategoryId] = React.useState<
@@ -34,6 +35,9 @@ const AddProduct: React.FC = () => {
   >(null);
   const [attributesLoading, setAttributesLoading] =
     React.useState<boolean>(false);
+  //For product image upload
+  const [uploadingImages, setUploadingImages] = React.useState(false);
+  const [uploadError, setUploadError] = React.useState("");
   //Fetch all attributes
   React.useEffect(() => {
     attributesApi
@@ -80,7 +84,51 @@ const AddProduct: React.FC = () => {
         console.log("err fetching categories", err);
       });
   }, []);
+  //For image upload
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
 
+    if (files.length === 0) return;
+
+    setUploadError("");
+
+    const validFiles = files.filter(
+      (file) => file.type.startsWith("image/") && file.size <= 5 * 1024 * 1024,
+    );
+
+    if (validFiles.length !== files.length) {
+      setUploadError("Only image files up to 5MB are allowed.");
+    }
+
+    if (validFiles.length === 0) {
+      e.target.value = "";
+      return;
+    }
+
+    try {
+      setUploadingImages(true);
+
+      const uploadedUrls = await Promise.all(
+        validFiles.map((file) => uploadImage(file)),
+      );
+
+      handleChange("imageUrls", [...formData.imageUrls, ...uploadedUrls]);
+    } catch (err) {
+      console.error("Image upload failed:", err);
+      setUploadError("Failed to upload images. Please try again.");
+    } finally {
+      setUploadingImages(false);
+      e.target.value = "";
+    }
+  };
+
+  //Remove image
+  const removeImage = (index: number) => {
+    handleChange(
+      "imageUrls",
+      formData.imageUrls.filter((_, i) => i !== index),
+    );
+  };
   //Create product
   const handleCreateProduct = async () => {
     const validationErrors = validateProductCreationForm(formData);
@@ -105,9 +153,11 @@ const AddProduct: React.FC = () => {
       setIsSaving(false);
     }
   };
+
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       {/* Header */}
+
       <div className="flex items-center gap-3">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">
@@ -160,7 +210,69 @@ const AddProduct: React.FC = () => {
             {formData.description.length}/2000
           </p>
         </div>
+        {/* Product Images */}
+        <div>
+          <label className="block text-sm font-medium mb-2">
+            Product Images *
+          </label>
 
+          <div className="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center">
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              multiple
+              onChange={handleImageUpload}
+              disabled={uploadingImages}
+              className="hidden"
+              id="product-images"
+            />
+
+            <label
+              htmlFor="product-images"
+              className="cursor-pointer flex flex-col items-center gap-2"
+            >
+              <span className="text-3xl">📷</span>
+
+              <span className="text-sm font-medium text-slate-700">
+                {uploadingImages
+                  ? "Uploading images..."
+                  : "Click to upload product images"}
+              </span>
+
+              <span className="text-xs text-slate-400">
+                PNG, JPG or WEBP (Maximum 5MB per image)
+              </span>
+            </label>
+          </div>
+
+          {uploadError && (
+            <p className="text-sm text-red-600 mt-2">{uploadError}</p>
+          )}
+
+          {/* Image Previews */}
+          {formData.imageUrls.length > 0 && (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4">
+              {formData.imageUrls.map((url, index) => (
+                <div key={`${url}-${index}`} className="relative group">
+                  <img
+                    src={url}
+                    alt={`Product ${index + 1}`}
+                    className="w-full h-32 object-cover rounded-lg border"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => removeImage(index)}
+                    className="absolute top-2 right-2 bg-red-600 text-white rounded-full w-7 h-7 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+                    aria-label={`Remove image ${index + 1}`}
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
         {/* Input for mrp price */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
