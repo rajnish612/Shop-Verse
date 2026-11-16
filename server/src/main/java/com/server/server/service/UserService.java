@@ -68,10 +68,10 @@ public class UserService {
     }
 
     //Get all users
-    public List<UserDTO> getAllUsers(String keyword, RoleType roleType, Boolean isActive) {
-        System.out.println("isActive: " + isActive);
+    public List<UserDTO> getAllUsers(Long userId,String keyword, RoleType roleType, Boolean isActive) {
         Specification<User> spec = UserDetailsSpecification.search(keyword)
-                .and(UserDetailsSpecification.isActive(isActive));
+                .and(UserDetailsSpecification.isActive(isActive))
+                .and(UserDetailsSpecification.notEqualUserId(userId));
 
         if (roleType != null) {
             Role role = roleRepo.findByName(roleType)

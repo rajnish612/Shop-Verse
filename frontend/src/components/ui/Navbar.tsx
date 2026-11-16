@@ -10,6 +10,7 @@ import {
   UserCircle,
   Folder,
   X,
+  LayoutDashboard,
 } from "lucide-react";
 import NavbarCategoryTree from "./NavbarCategoryTree";
 import React, { useEffect, useRef, useState } from "react";
@@ -127,7 +128,19 @@ export function Navbar() {
               )}
             </div>
           </div>
-
+          {!loading && user?.roles.includes("ADMIN") && (
+            <Link
+              to="/admin"
+              className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
+                location.pathname.startsWith("/admin")
+                  ? "bg-indigo-50 text-indigo-600"
+                  : "text-indigo-600 hover:bg-indigo-50"
+              }`}
+            >
+              <LayoutDashboard className="h-4 w-4" />
+              Admin Panel
+            </Link>
+          )}
           {/* Right Section */}
           <div className="flex items-center gap-1 sm:gap-2">
             {/* Cart */}

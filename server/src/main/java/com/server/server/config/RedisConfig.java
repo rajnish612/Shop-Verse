@@ -1,5 +1,4 @@
 package com.server.server.config;
-
 import com.server.server.dto.AttributeResponseDTO;
 import com.server.server.dto.CategoryResponseDTO;
 import com.server.server.dto.ProductResponseDTO;
@@ -8,8 +7,6 @@ import org.springframework.boot.cache.autoconfigure.RedisCacheManagerBuilderCust
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
-import org.springframework.data.redis.cache.RedisCacheManager;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.serializer.JacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.RedisSerializer;
@@ -20,6 +17,7 @@ import tools.jackson.databind.type.TypeFactory;
 import java.time.Duration;
 import java.util.List;
 
+//Time to live (TTL) for cache
 @Configuration
 public class RedisConfig {
 

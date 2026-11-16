@@ -26,8 +26,9 @@ public class UserController {
     //Get all users with optional filtering by keyword and role
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<UserDTO>> getAllUsers(@RequestParam(required = false) String keyword, @RequestParam(required = false) RoleType role, @RequestParam(required = false) Boolean active) {
-        return ResponseEntity.ok(userService.getAllUsers(keyword, role, active)); // Replace with actual implementation
+    public ResponseEntity<List<UserDTO>> getAllUsers(@RequestParam(required = false) String keyword, @RequestParam(required = false) RoleType role, @RequestParam(required = false) Boolean active, @AuthenticationPrincipal Jwt jwt) {
+        Long userId = jwt.getClaim("userId");
+        return ResponseEntity.ok(userService.getAllUsers(userId, keyword, role, active));
     }
 
 

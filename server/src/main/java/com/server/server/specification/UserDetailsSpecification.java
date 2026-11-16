@@ -34,6 +34,15 @@ public final class UserDetailsSpecification {
         };
     }
 
+    public static Specification<User> notEqualUserId(Long userId) {
+        return (root, query, cb) -> {
+            if (userId == null) {
+                return cb.conjunction();
+            }
+            return cb.notEqual(root.get("id"), userId);
+        };
+    }
+
     public static Specification<User> isActive(Boolean isActive) {
         return (root, query, cb) -> {
             if (isActive == null) {
