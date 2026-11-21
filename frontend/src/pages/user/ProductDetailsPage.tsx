@@ -6,7 +6,6 @@ import {
   Loader2,
   ShieldCheck,
   ShoppingCart,
-  Star,
   Truck,
 } from "lucide-react";
 
@@ -16,6 +15,7 @@ import { formatPrice } from "../../utils/helperFunctions";
 
 import CustomerReviews from "../../components/CustomerReviews";
 import { cartApis } from "../../services/cart";
+import { toast } from "sonner";
 
 const ProductDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -37,56 +37,44 @@ const ProductDetailsPage: React.FC = () => {
   };
   // Fetch product
   React.useEffect(() => {
-    const productId = Number(id);
+    const fetchProduct = async () => {
+      const productId = Number(id);
 
-    if (!id || !Number.isInteger(productId) || productId <= 0) {
-      setError("Invalid product ID");
-      setProductLoading(false);
-      return;
-    }
+      if (!id || !Number.isInteger(productId) || productId <= 0) {
+        setProductLoading(false);
+        return;
+      }
 
-    let cancelled = false;
+      setProductLoading(true);
+      setProduct(null);
 
-    setProductLoading(true);
-    setError(null);
-    setProduct(null);
+      productApis
+        .getProduct(productId)
+        .then((data) => {
+          setProduct(data);
+          setSelectedImageIndex(0);
 
-    productApis
-      .getProduct(productId)
-      .then((data) => {
-        if (cancelled) return;
+          const initialSelections: Record<number, number> = {};
 
-        setProduct(data);
-        setSelectedImageIndex(0);
+          data.attributes?.forEach((attribute) => {
+            const firstValueId = Object.keys(attribute.values)[0];
 
-        const initialSelections: Record<number, number> = {};
+            if (firstValueId !== undefined) {
+              initialSelections[attribute.id] = Number(firstValueId);
+            }
+          });
 
-        data.attributes?.forEach((attribute) => {
-          const firstValueId = Object.keys(attribute.values)[0];
-
-          if (firstValueId !== undefined) {
-            initialSelections[attribute.id] = Number(firstValueId);
-          }
-        });
-
-        setSelectedAttributes(initialSelections);
-      })
-      .catch((err) => {
-        console.error("Error loading product:", err);
-
-        if (!cancelled) {
-          setError("Unable to load product details.");
-        }
-      })
-      .finally(() => {
-        if (!cancelled) {
+          setSelectedAttributes(initialSelections);
+        })
+        .catch((err) => {
+          console.error("Error loading product:", err);
+        })
+        .finally(() => {
           setProductLoading(false);
-        }
-      });
-
-    return () => {
-      cancelled = true;
+        });
     };
+
+    fetchProduct();
   }, [id]);
 
   //Add product to cart
@@ -95,7 +83,7 @@ const ProductDetailsPage: React.FC = () => {
 
     // Check stock
     if (product.stockQuantity <= 0) {
-      alert("This product is out of stock.");
+      toast.error("This product is out of stock.");
       return;
     }
 
@@ -108,7 +96,7 @@ const ProductDetailsPage: React.FC = () => {
     );
 
     if (!allAttributesSelected) {
-      alert("Please select all product specifications.");
+      toast.error("Please select all product specifications.");
       return;
     }
 
@@ -123,10 +111,9 @@ const ProductDetailsPage: React.FC = () => {
 
       console.log("Added to cart:", response);
 
-      alert("Product added to cart successfully!");
+      toast.success("Product added to cart successfully!");
     } catch (error) {
-      console.error("Error adding product to cart:", error.response.data);
-      alert("Unable to add product to cart. Please try again.");
+      console.error("Error adding product to cart:", error);
     } finally {
       setIsAddingToCart(false);
     }
@@ -142,11 +129,11 @@ const ProductDetailsPage: React.FC = () => {
   }
 
   // Error state
-  if (error || !product) {
+  if (!product) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4">
         <h2 className="text-xl font-bold text-text-primary">
-          {error || "Product not found"}
+          {error || "Product unavailable"}
         </h2>
 
         <Link to="/shop" className="text-primary hover:underline">

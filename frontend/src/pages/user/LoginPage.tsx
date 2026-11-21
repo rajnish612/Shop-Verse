@@ -1,6 +1,14 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { Mail, Lock, Eye, EyeOff, ArrowRight, ShoppingBag } from "lucide-react";
+import {
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  ArrowRight,
+  ShoppingBag,
+  Loader2,
+} from "lucide-react";
 import { authApis } from "../../services/auth";
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -139,7 +147,11 @@ export const LoginPage: React.FC = () => {
               className="w-full py-3.5 px-4 rounded-xl bg-primary hover:bg-primary-dark text-white font-bold text-sm transition-all shadow-md shadow-primary/25 flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {isLoading ? (
-                <span>Signing in...</span>
+                <div className="flex items-center space-x-2 justify-center">
+                  {" "}
+                  <Loader2 className="animate-spin" />
+                  <span>Signing in...</span>
+                </div>
               ) : (
                 <>
                   <span>Sign In</span>

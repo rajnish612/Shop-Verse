@@ -17,19 +17,16 @@ import { formatPrice, getDiscountedPrice } from "../../utils/helperFunctions";
 import type { CartItem, Coupon } from "../../types";
 import { cartApis } from "../../services/cart";
 import { couponApi } from "../../services/coupons";
+import { toast } from "sonner";
 
 const CartPage: React.FC = () => {
   const [items, setItems] = useState<CartItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [loadFailed, setLoadFailed] = useState(false);
   const [updatingCartItemId, setUpdatingCartItemId] = useState<number | null>(
     null,
   );
 
-  const [quantityError, setQuantityError] = useState<{
-    cartItemId: number;
-    message: string;
-  } | null>(null);
   // Coupon states
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
@@ -40,14 +37,11 @@ const CartPage: React.FC = () => {
   const loadCart = useCallback(async () => {
     try {
       setIsLoading(true);
-      setError("");
 
       const data = await cartApis.getAll();
       setItems(data);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Unable to load cart items.",
-      );
+      setLoadFailed(false);
     } finally {
       setIsLoading(false);
     }
@@ -73,13 +67,10 @@ const CartPage: React.FC = () => {
       setIsApplyingCoupon(true);
 
       const coupon = await couponApi.apply(code);
-
+      toast.success("Coupon applied successfully!");
       setAppliedCoupon(coupon);
       setCouponCode("");
     } catch (err) {
-      setCouponError(
-        err instanceof Error ? err.message : "Invalid or expired coupon code.",
-      );
     } finally {
       setIsApplyingCoupon(false);
     }
@@ -129,7 +120,6 @@ const CartPage: React.FC = () => {
   const handleIncreaseQuantity = async (cartItemId: number) => {
     try {
       setUpdatingCartItemId(cartItemId);
-      setQuantityError(null);
 
       const updatedItem = await cartApis.increaseQuantity(cartItemId);
 
@@ -138,14 +128,8 @@ const CartPage: React.FC = () => {
           item.cartItemId === cartItemId ? updatedItem : item,
         ),
       );
-    } catch (error) {
-      setQuantityError({
-        cartItemId,
-        message:
-          error instanceof Error
-            ? error.message
-            : "Unable to increase quantity.",
-      });
+    } catch (err) {
+      console.error("Failed to increase quantity:", err);
     } finally {
       setUpdatingCartItemId(null);
     }
@@ -154,7 +138,6 @@ const CartPage: React.FC = () => {
   const handleDecreaseQuantity = async (cartItemId: number) => {
     try {
       setUpdatingCartItemId(cartItemId);
-      setQuantityError(null);
 
       const updatedItem = await cartApis.decreaseQuantity(cartItemId);
 
@@ -163,14 +146,8 @@ const CartPage: React.FC = () => {
           item.cartItemId === cartItemId ? updatedItem : item,
         ),
       );
-    } catch (error) {
-      setQuantityError({
-        cartItemId,
-        message:
-          error instanceof Error
-            ? error.message
-            : "Unable to decrease quantity.",
-      });
+    } catch (err) {
+      console.error("Failed to decrease quantity:", err);
     } finally {
       setUpdatingCartItemId(null);
     }
@@ -185,11 +162,9 @@ const CartPage: React.FC = () => {
   }
 
   // Error state
-  if (error) {
+  if (loadFailed) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-surface-alt">
-        <p className="text-danger">{error}</p>
-
         <button
           onClick={() => void loadCart()}
           className="px-5 py-2 rounded-xl bg-primary text-white font-semibold"
@@ -351,14 +326,6 @@ const CartPage: React.FC = () => {
                           </button>
                         </div>
                       </div>
-
-                      {/* Quantity Error */}
-                      {quantityError?.cartItemId === item.cartItemId && (
-                        <p className="mt-2 flex items-center gap-1.5 text-xs text-danger">
-                          <AlertCircle size={13} />
-                          {quantityError.message}
-                        </p>
-                      )}
                     </div>
                   </div>
 

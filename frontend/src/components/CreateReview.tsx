@@ -1,7 +1,8 @@
 import React from "react";
-import { Star } from "lucide-react";
+import { Loader2, Star } from "lucide-react";
 import { reviewApis } from "../services/reviews";
 import type { Review } from "../types";
+import { toast } from "sonner";
 
 interface CreateReviewProps {
   productId: number;
@@ -16,19 +17,17 @@ const CreateReview: React.FC<CreateReviewProps> = ({
   const [hoverRating, setHoverRating] = React.useState(0);
   const [text, setText] = React.useState("");
   const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState("");
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError("");
 
     if (rating === 0) {
-      setError("Please select a rating.");
+      toast.error("Please select a rating.");
       return;
     }
 
     if (!text.trim()) {
-      setError("Please write your review.");
+      toast.error("Please write your review.");
       return;
     }
 
@@ -42,12 +41,11 @@ const CreateReview: React.FC<CreateReviewProps> = ({
       });
 
       onReviewCreated(newReview);
-
+      toast.success("Review created successfully");
       setRating(0);
       setText("");
     } catch (err) {
       console.error("Error creating review:", err);
-      setError("Unable to submit your review. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -119,16 +117,20 @@ const CreateReview: React.FC<CreateReviewProps> = ({
           </p>
         </div>
 
-        {/* Error */}
-        {error && <p className="text-sm text-red-500">{error}</p>}
-
         {/* Submit */}
         <button
           type="submit"
           disabled={loading}
-          className="rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex min-w-[155px] items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {loading ? "Submitting..." : "Submit Review"}
+          {loading ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Submitting...
+            </>
+          ) : (
+            "Submit Review"
+          )}
         </button>
       </form>
     </div>

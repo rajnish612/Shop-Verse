@@ -4,6 +4,7 @@ import { Plus, MapPin, X, Trash2, Loader2 } from "lucide-react";
 import AddressCard from "../../components/ui/AddressCard";
 import { addressesApi } from "../../services/address";
 import type { Address } from "../../types";
+import { toast } from "sonner";
 // Temporary user ID for development.
 // Replace this with the logged-in user's ID from your auth state.
 const USER_ID = 1;
@@ -35,21 +36,17 @@ const AddressPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
 
-  const [error, setError] = useState("");
-  const [formError, setFormError] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Fetch addresses
   const loadAddresses = useCallback(async () => {
     try {
       setIsLoading(true);
-      setError("");
 
       const data = await addressesApi.getByUser(USER_ID);
       setAddresses(data);
     } catch (err) {
       console.error("Failed to fetch addresses:", err);
-      setError("Unable to load your addresses. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -63,7 +60,6 @@ const AddressPage: React.FC = () => {
   const openAddModal = () => {
     setFormData(emptyAddress);
     setErrors({});
-    setFormError("");
     setIsModalOpen(true);
   };
 
@@ -71,7 +67,6 @@ const AddressPage: React.FC = () => {
     setIsModalOpen(false);
     setFormData(emptyAddress);
     setErrors({});
-    setFormError("");
   };
 
   // Handle input changes
@@ -119,7 +114,6 @@ const AddressPage: React.FC = () => {
 
     try {
       setIsSubmitting(true);
-      setFormError("");
 
       const request = {
         locality: formData.locality.trim(),
@@ -132,11 +126,10 @@ const AddressPage: React.FC = () => {
       const createdAddress = await addressesApi.create(USER_ID, request);
 
       setAddresses((prev) => [...prev, createdAddress]);
-
+      toast.success("Address added successfully!");
       closeModal();
     } catch (err) {
       console.error("Failed to create address:", err);
-      setFormError("Unable to save address. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -152,11 +145,10 @@ const AddressPage: React.FC = () => {
       await addressesApi.remove(USER_ID, deleteId);
 
       setAddresses((prev) => prev.filter((address) => address.id !== deleteId));
-
+      toast.success("Address deleted successfully!");
       setDeleteId(null);
     } catch (err) {
       console.error("Failed to delete address:", err);
-      setError("Unable to delete address. Please try again.");
     } finally {
       setDeletingId(null);
     }
@@ -222,19 +214,6 @@ const AddressPage: React.FC = () => {
             Add New Address
           </button>
         </div>
-
-        {/* Error */}
-        {error && (
-          <div className="mb-5 flex items-center justify-between gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-            <p>{error}</p>
-            <button
-              onClick={loadAddresses}
-              className="shrink-0 font-semibold underline"
-            >
-              Retry
-            </button>
-          </div>
-        )}
 
         {/* Address count */}
         <div className="mb-5">
@@ -342,8 +321,6 @@ const AddressPage: React.FC = () => {
                   )}
                 </div>
               ))}
-
-              {formError && <p className="text-sm text-red-600">{formError}</p>}
 
               <div className="flex justify-end gap-3 border-t border-slate-100 pt-5">
                 <button

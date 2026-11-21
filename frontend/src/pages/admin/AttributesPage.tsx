@@ -1,7 +1,16 @@
 import React from "react";
 import { type ProductAttribute } from "../../types";
 import { attributesApi } from "../../services/attributes";
-import { Check, Edit2, Plus, Sliders, Tag, Trash2, X } from "lucide-react";
+import {
+  Check,
+  Edit2,
+  Loader2,
+  Plus,
+  Sliders,
+  Tag,
+  Trash2,
+  X,
+} from "lucide-react";
 interface AddOrEditAttributeModalProps {
   handleModalClose: () => void;
   editingAttr: ProductAttribute | null;
@@ -34,6 +43,7 @@ const AddOrEditAttributeModal: React.FC<AddOrEditAttributeModalProps> = ({
             {editingAttr ? "Edit Attribute" : "Create New Attribute"}
           </h3>
           <button
+            disabled={isSaving}
             onClick={handleModalClose}
             className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition"
           >
@@ -78,6 +88,7 @@ const AddOrEditAttributeModal: React.FC<AddOrEditAttributeModalProps> = ({
 
           <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
             <button
+              disabled={isSaving}
               type="button"
               onClick={handleModalClose}
               className="rounded-xl px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-100 transition"
@@ -85,15 +96,22 @@ const AddOrEditAttributeModal: React.FC<AddOrEditAttributeModalProps> = ({
               Cancel
             </button>
             <button
+              type="button"
               onClick={handleSaveAttr}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
+              disabled={isSaving}
+              className="inline-flex min-w-[150px] items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              <Check className="h-4 w-4" />
-              {isSaving
-                ? "Saving..."
-                : editingAttr
-                  ? "Save Changes"
-                  : "Create Attribute"}
+              {isSaving ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Check className="h-4 w-4" />
+                  {editingAttr ? "Save Changes" : "Create Attribute"}
+                </>
+              )}
             </button>
           </div>
         </div>
@@ -410,7 +428,12 @@ const AttributesPage = () => {
         />
       )}
       {/* //All attributes */}
-      {attributes.length != 0 && (
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center py-16 gap-3">
+          <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+          <p className="text-sm text-slate-500">Loading attributes...</p>
+        </div>
+      ) : attributes.length > 0 ? (
         <Attributes
           handleAttributeAddValue={handleAddAttributeValue}
           handleOpenEditModal={handleOpenEditModal}
@@ -418,6 +441,16 @@ const AttributesPage = () => {
           attributes={attributes}
           handleDeleteAttribute={handleDeleteAttribute}
         />
+      ) : (
+        <div className="rounded-xl border border-dashed border-slate-300 py-12 text-center">
+          <Sliders className="mx-auto h-8 w-8 text-slate-400 mb-3" />
+          <p className="text-sm font-medium text-slate-700">
+            No attributes found
+          </p>
+          <p className="text-xs text-slate-500 mt-1">
+            Create your first product attribute to get started.
+          </p>
+        </div>
       )}
     </div>
   );

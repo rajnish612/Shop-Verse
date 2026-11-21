@@ -27,13 +27,9 @@ export const orderApis = {
   },
 
   //Get all orders for user
-  async getOrdersForUser(
-    userId: number,
-    status?: OrderStatus,
-  ): Promise<Order[]> {
+  async getOrdersForUser(status?: OrderStatus): Promise<Order[]> {
     const response = await api.get<Order[]>("/order", {
       params: {
-        userId,
         status: status || undefined,
       },
     });

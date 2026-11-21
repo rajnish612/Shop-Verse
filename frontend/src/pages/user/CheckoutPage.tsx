@@ -10,6 +10,7 @@ import { orderApis } from "../../services/order";
 
 import CheckoutAddressStep from "../../components/checkout/CheckoutAddressStep";
 import CheckoutPaymentStep from "../../components/checkout/CheckoutPaymentStep";
+import { toast } from "sonner";
 
 interface CheckoutState {
   coupon: Coupon | null;
@@ -37,19 +38,16 @@ const CheckoutPage: React.FC = () => {
   );
 
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const [retryCount, setRetryCount] = useState(0);
 
   // Order creation states
   const [placingOrder, setPlacingOrder] = useState(false);
-  const [orderError, setOrderError] = useState("");
   const [createdOrder, setCreatedOrder] = useState<Order | null>(null);
 
   useEffect(() => {
     const fetchAddresses = async () => {
       try {
         setLoading(true);
-        setError("");
 
         const data = await addressesApi.getByUser(TEST_USER_ID);
 
@@ -57,7 +55,6 @@ const CheckoutPage: React.FC = () => {
         setSelectedAddressId(data[0]?.id ?? null);
       } catch (err) {
         console.error("Failed to fetch addresses:", err);
-        setError("Failed to load addresses. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -68,7 +65,6 @@ const CheckoutPage: React.FC = () => {
 
   const handlePlaceOrder = async () => {
     if (!selectedAddressId) {
-      setOrderError("Please select a shipping address.");
       return;
     }
 
@@ -76,7 +72,6 @@ const CheckoutPage: React.FC = () => {
 
     try {
       setPlacingOrder(true);
-      setOrderError("");
 
       const order = await orderApis.createOrder({
         userId: TEST_USER_ID,
@@ -87,9 +82,9 @@ const CheckoutPage: React.FC = () => {
 
       setCreatedOrder(order);
       setCurrentStep(3);
+      toast.success("Order placed successfully");
     } catch (err) {
       console.error("Failed to create order:", err);
-      setOrderError("Failed to place your order. Please try again.");
     } finally {
       setPlacingOrder(false);
     }
@@ -130,7 +125,6 @@ const CheckoutPage: React.FC = () => {
             selectedAddressId={selectedAddressId}
             onSelectAddress={setSelectedAddressId}
             loading={loading}
-            error={error}
             onRetry={() => setRetryCount((count) => count + 1)}
             coupon={coupon}
             subtotal={subtotal}
@@ -150,7 +144,6 @@ const CheckoutPage: React.FC = () => {
             onBack={() => setCurrentStep(1)}
             onPlaceOrder={handlePlaceOrder}
             placingOrder={placingOrder}
-            error={orderError}
           />
         )}
 

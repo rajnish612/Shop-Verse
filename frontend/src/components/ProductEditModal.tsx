@@ -1,8 +1,9 @@
 import React from "react";
-import { X, Save } from "lucide-react";
+import { X, Save, Loader2 } from "lucide-react";
 import type { Category, Product, ProductAttribute } from "../types";
 import { productApis } from "../services/products";
 import { type UpdateProductRequest } from "../services/products";
+import { toast } from "sonner";
 interface ProductEditModalProps {
   product: Product;
   categories: Category[];
@@ -92,17 +93,17 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
     const parsedCategoryId = Number(categoryId);
 
     if (!name.trim() || !description.trim()) {
-      setError("Name and description are required.");
+      toast.error("Name and description are required.");
       return;
     }
 
     if (!parsedCategoryId) {
-      setError("Please select a category.");
+      toast.error("Please select a category.");
       return;
     }
 
     if (!Number.isFinite(parsedMrp) || parsedMrp <= 0) {
-      setError("MRP price must be greater than 0.");
+      toast.error("MRP price must be greater than 0.");
       return;
     }
 
@@ -111,12 +112,12 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
       parsedDiscount < 0 ||
       parsedDiscount > 100
     ) {
-      setError("Discount must be between 0 and 100.");
+      toast.error("Discount must be between 0 and 100.");
       return;
     }
 
     if (!Number.isInteger(parsedStock) || parsedStock < 0) {
-      setError("Stock quantity cannot be negative.");
+      toast.error("Stock quantity cannot be negative.");
       return;
     }
 
@@ -138,10 +139,10 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
       setSaving(true);
 
       const updatedProduct = await productApis.update(product.id, request);
-
+      toast.success("Product updated successfully");
       onSave(updatedProduct);
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to update product.");
+    } catch (err) {
+      setError("Failed to update product.", err);
     } finally {
       setSaving(false);
     }
@@ -348,10 +349,19 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
             <button
               type="submit"
               disabled={saving}
-              className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
+              className="inline-flex min-w-[140px] items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
             >
-              <Save size={15} />
-              {saving ? "Saving..." : "Save Changes"}
+              {saving ? (
+                <>
+                  <Loader2 size={16} className="animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save size={15} />
+                  Save Changes
+                </>
+              )}
             </button>
           </div>
         </form>

@@ -8,6 +8,7 @@ import {
 } from "react";
 import api from "../services/api";
 import type { User } from "../types";
+import axios from "axios";
 
 export interface AuthUser {
   userId: number;
@@ -16,7 +17,7 @@ export interface AuthUser {
 }
 
 interface AuthContextType {
-  user: User| null;
+  user: User | null;
   loading: boolean;
   refreshUser: () => Promise<User>;
 }
@@ -33,7 +34,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(response.data);
       return response.data;
     } catch (error) {
-      setUser(null);
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        setUser(null);
+      }
+
       throw error;
     }
   }, []);
@@ -43,7 +47,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [refreshUser]);
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      setUser(null);
+    };
 
+    window.addEventListener("auth:unauthorized", handleUnauthorized);
+
+    return () => {
+      window.removeEventListener("auth:unauthorized", handleUnauthorized);
+    };
+  }, []);
   return (
     <AuthContext.Provider value={{ user, loading, refreshUser }}>
       {children}

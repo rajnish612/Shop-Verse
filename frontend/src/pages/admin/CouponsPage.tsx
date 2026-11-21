@@ -13,6 +13,7 @@ import {
   Clock,
   Filter,
   Search,
+  Loader2,
 } from "lucide-react";
 import { formatDate } from "../../data/mockData";
 import type { Coupon } from "../../types";
@@ -21,7 +22,9 @@ import { couponApi } from "../../services/coupons";
 export const CouponsPage: React.FC = () => {
   const [couponList, setCouponList] = useState<Coupon[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isCreating, setIsCreating] = useState(false);
+  const [updatingCouponId, setUpdatingCouponId] = useState<number | null>(null);
 
   const [searchCode, setSearchCode] = useState("");
   const [selectedStatus, setSelectedStatus] = useState<
@@ -42,6 +45,7 @@ export const CouponsPage: React.FC = () => {
   //Create new coupon
   const handleAddCoupon = async (e: React.FormEvent) => {
     e.preventDefault();
+
     const newCoupon: Coupon = {
       id: Math.max(...couponList.map((c) => c.id), 0) + 1,
       code: code.trim().toUpperCase(),
@@ -52,21 +56,30 @@ export const CouponsPage: React.FC = () => {
     };
 
     try {
+      setIsCreating(true);
+
       const data = await couponApi.create(newCoupon);
       setCouponList((prev) => [data, ...prev]);
+
+      setIsModalOpen(false);
+      setCode("");
+      setDiscount(10);
+      setIsPercentage(true);
+      setExpiresAt("");
     } catch (err) {
-      console.log("err in coupon creation", err);
+      console.error("Error creating coupon:", err);
+    } finally {
+      setIsCreating(false);
     }
-    setIsModalOpen(false);
-    setCode("");
-    setDiscount(10);
-    setIsPercentage(true);
-    setExpiresAt("");
   };
 
   //Update status of coupon
   const updateCouponStatus = async (couponId: number, active: boolean) => {
+    if (updatingCouponId !== null) return;
+
     try {
+      setUpdatingCouponId(couponId);
+
       const data = await couponApi.updateStatus(couponId, active);
 
       setCouponList((prev) =>
@@ -75,7 +88,9 @@ export const CouponsPage: React.FC = () => {
         ),
       );
     } catch (err) {
-      console.log("err updating status: ", err);
+      console.error("Error updating coupon status:", err);
+    } finally {
+      setUpdatingCouponId(null);
     }
   };
   //Fetch all coupons
@@ -234,112 +249,140 @@ export const CouponsPage: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {couponList.map((coupon, idx) => {
-                const isExpired =
-                  (coupon.expiresAt &&
-                    new Date(coupon.expiresAt).getTime() < Date.now()) ||
-                  !coupon.active;
+              {isLoading ? (
+                <tr>
+                  <td colSpan={6} className="py-12 text-center">
+                    <div className="flex flex-col items-center justify-center gap-3">
+                      <Loader2 className="h-7 w-7 animate-spin text-primary" />
+                      <p className="text-sm text-text-secondary">
+                        Loading coupons...
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              ) : couponList.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-12 text-center">
+                    <Ticket className="mx-auto mb-3 h-8 w-8 text-text-muted" />
+                    <p className="text-sm font-medium text-text-primary">
+                      No coupons found
+                    </p>
+                    <p className="mt-1 text-xs text-text-secondary">
+                      Try changing your filters or create a new coupon.
+                    </p>
+                  </td>
+                </tr>
+              ) : (
+                couponList.map((coupon, idx) => {
+                  const isExpired =
+                    (coupon.expiresAt &&
+                      new Date(coupon.expiresAt).getTime() < Date.now()) ||
+                    !coupon.active;
 
-                return (
-                  <tr
-                    key={coupon.id}
-                    className={`transition hover:bg-surface-hover ${
-                      idx % 2 === 1 ? "bg-surface-alt/40" : "bg-surface"
-                    }`}
-                  >
-                    {/* Code */}
-                    <td className="whitespace-nowrap px-6 py-4">
-                      <div className="flex items-center gap-2.5">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                          <Ticket className="h-4 w-4" />
+                  return (
+                    <tr
+                      key={coupon.id}
+                      className={`transition hover:bg-surface-hover ${
+                        idx % 2 === 1 ? "bg-surface-alt/40" : "bg-surface"
+                      }`}
+                    >
+                      {/* Code */}
+                      <td className="whitespace-nowrap px-6 py-4">
+                        <div className="flex items-center gap-2.5">
+                          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                            <Ticket className="h-4 w-4" />
+                          </div>
+                          <span className="font-mono font-bold tracking-wider text-text-primary">
+                            {coupon.code}
+                          </span>
                         </div>
-                        <span className="font-mono font-bold tracking-wider text-text-primary">
-                          {coupon.code}
-                        </span>
-                      </div>
-                    </td>
+                      </td>
 
-                    {/* Discount Value */}
-                    <td className="whitespace-nowrap px-6 py-4 font-semibold text-text-primary">
-                      {coupon.percentage
-                        ? `${coupon.discount}% OFF`
-                        : `₹${coupon.discount} FLAT OFF`}
-                    </td>
+                      {/* Discount Value */}
+                      <td className="whitespace-nowrap px-6 py-4 font-semibold text-text-primary">
+                        {coupon.percentage
+                          ? `${coupon.discount}% OFF`
+                          : `₹${coupon.discount} FLAT OFF`}
+                      </td>
 
-                    {/* Type Badge */}
-                    <td className="whitespace-nowrap px-6 py-4 text-text-secondary">
-                      <span className="inline-flex items-center gap-1 rounded-md bg-surface-alt px-2 py-0.5 text-xs font-medium border border-border">
-                        {coupon.percentage ? (
-                          <>
-                            <Percent className="h-3 w-3 text-primary" />{" "}
-                            Percentage
-                          </>
-                        ) : (
-                          <>
-                            <DollarSign className="h-3 w-3 text-emerald-600" />{" "}
-                            Flat Amount
-                          </>
-                        )}
-                      </span>
-                    </td>
-
-                    {/* Expiry */}
-                    <td className="whitespace-nowrap px-6 py-4 text-text-secondary">
-                      <div className="flex items-center gap-1.5 text-xs">
-                        <Calendar className="h-3.5 w-3.5 text-text-muted" />
-                        {coupon.expiresAt
-                          ? formatDate(coupon.expiresAt)
-                          : "Never Expires"}
-                      </div>
-                    </td>
-
-                    {/* Status Badge */}
-                    <td className="whitespace-nowrap px-6 py-4">
-                      {isExpired ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-0.5 text-xs font-semibold text-rose-700">
-                          <Clock className="h-3 w-3" /> Expired
-                        </span>
-                      ) : coupon.active ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
-                          <CheckCircle className="h-3 w-3" /> Active
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-600">
-                          Inactive
-                        </span>
-                      )}
-                    </td>
-
-                    {/* Actions */}
-                    <td className="whitespace-nowrap px-6 py-4 text-right">
-                      <div className="inline-flex items-center gap-3">
-                        <button
-                          onClick={() =>
-                            updateCouponStatus(coupon.id, !coupon.active)
-                          }
-                          className="text-text-secondary hover:text-primary transition"
-                          title={
-                            coupon.active ? "Disable Coupon" : "Enable Coupon"
-                          }
-                        >
-                          {coupon.active ? (
-                            <ToggleRight className="h-6 w-6 text-primary" />
+                      {/* Type Badge */}
+                      <td className="whitespace-nowrap px-6 py-4 text-text-secondary">
+                        <span className="inline-flex items-center gap-1 rounded-md bg-surface-alt px-2 py-0.5 text-xs font-medium border border-border">
+                          {coupon.percentage ? (
+                            <>
+                              <Percent className="h-3 w-3 text-primary" />{" "}
+                              Percentage
+                            </>
                           ) : (
-                            <ToggleLeft className="h-6 w-6 text-text-muted" />
+                            <>
+                              <DollarSign className="h-3 w-3 text-emerald-600" />{" "}
+                              Flat Amount
+                            </>
                           )}
-                        </button>
-                        <button
-                          onClick={() => handleDeleteCoupon(coupon.id)}
-                          className="rounded p-1 text-text-secondary hover:text-danger transition"
-                          title="Delete Coupon"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
+                        </span>
+                      </td>
+
+                      {/* Expiry */}
+                      <td className="whitespace-nowrap px-6 py-4 text-text-secondary">
+                        <div className="flex items-center gap-1.5 text-xs">
+                          <Calendar className="h-3.5 w-3.5 text-text-muted" />
+                          {coupon.expiresAt
+                            ? formatDate(coupon.expiresAt)
+                            : "Never Expires"}
+                        </div>
+                      </td>
+
+                      {/* Status Badge */}
+                      <td className="whitespace-nowrap px-6 py-4">
+                        {isExpired ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-0.5 text-xs font-semibold text-rose-700">
+                            <Clock className="h-3 w-3" /> Expired
+                          </span>
+                        ) : coupon.active ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
+                            <CheckCircle className="h-3 w-3" /> Active
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-600">
+                            Inactive
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Actions */}
+                      <td className="whitespace-nowrap px-6 py-4 text-right">
+                        <div className="inline-flex items-center gap-3">
+                          <button
+                            onClick={() =>
+                              updateCouponStatus(coupon.id, !coupon.active)
+                            }
+                            disabled={updatingCouponId !== null}
+                            className="text-text-secondary hover:text-primary transition disabled:cursor-not-allowed disabled:opacity-50"
+                            title={
+                              coupon.active ? "Disable Coupon" : "Enable Coupon"
+                            }
+                          >
+                            {updatingCouponId === coupon.id ? (
+                              <Loader2 className="h-5 w-5 animate-spin" />
+                            ) : coupon.active ? (
+                              <ToggleRight className="h-6 w-6 text-primary" />
+                            ) : (
+                              <ToggleLeft className="h-6 w-6 text-text-muted" />
+                            )}
+                          </button>
+                          <button
+                            onClick={() => handleDeleteCoupon(coupon.id)}
+                            className="rounded p-1 text-text-secondary hover:text-danger transition"
+                            title="Delete Coupon"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>
@@ -354,6 +397,7 @@ export const CouponsPage: React.FC = () => {
                 Create New Coupon
               </h3>
               <button
+                disabled={isCreating}
                 onClick={() => setIsModalOpen(false)}
                 className="rounded p-1 text-text-muted hover:text-text-primary"
               >
@@ -435,6 +479,7 @@ export const CouponsPage: React.FC = () => {
 
               <div className="mt-6 flex justify-end gap-3 pt-4 border-t border-border">
                 <button
+                  disabled={isCreating}
                   type="button"
                   onClick={() => setIsModalOpen(false)}
                   className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-text-secondary hover:bg-surface-hover"
@@ -443,9 +488,17 @@ export const CouponsPage: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-primary-dark"
+                  disabled={isCreating}
+                  className="inline-flex min-w-[145px] items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-primary-dark disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  Create Coupon
+                  {isCreating ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Creating...
+                    </>
+                  ) : (
+                    "Create Coupon"
+                  )}
                 </button>
               </div>
             </form>

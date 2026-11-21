@@ -4,6 +4,7 @@ import {
   ChevronDown,
   ChevronUp,
   CreditCard,
+  Loader2,
   MapPin,
   Package,
   RefreshCw,
@@ -14,6 +15,7 @@ import {
 import { OrderStatus } from "../../types";
 import type { Order } from "../../types";
 import { orderApis } from "../../services/order";
+import { toast } from "sonner";
 
 type StatusFilter = OrderStatus | "ALL";
 
@@ -77,13 +79,11 @@ const OrdersAdminPage: React.FC = () => {
 
   const [isLoading, setIsLoading] = useState(true);
   const [updatingOrderId, setUpdatingOrderId] = useState<number | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
   // Fetch orders
   const fetchOrders = useCallback(async () => {
     try {
       setIsLoading(true);
-      setError(null);
 
       const data = await orderApis.getAllForAdmin(
         searchQuery.trim() || undefined,
@@ -92,7 +92,7 @@ const OrdersAdminPage: React.FC = () => {
 
       setOrderList(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch orders.");
+      console.log("Error fetching orders:", err);
     } finally {
       setIsLoading(false);
     }
@@ -109,7 +109,6 @@ const OrdersAdminPage: React.FC = () => {
   ) => {
     try {
       setUpdatingOrderId(orderId);
-      setError(null);
 
       await orderApis.updateStatus(orderId, newStatus);
 
@@ -118,10 +117,9 @@ const OrdersAdminPage: React.FC = () => {
           order.id === orderId ? { ...order, orderStatus: newStatus } : order,
         ),
       );
+      toast.success("Order status updated");
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to update order status.",
-      );
+      console.log("Error updating order status:", err);
     } finally {
       setUpdatingOrderId(null);
     }
@@ -194,13 +192,6 @@ const OrdersAdminPage: React.FC = () => {
         </button>
       </div>
 
-      {/* Error message */}
-      {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
-        </div>
-      )}
-
       {/* Orders table */}
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
         <div className="overflow-x-auto">
@@ -221,20 +212,13 @@ const OrdersAdminPage: React.FC = () => {
 
             <tbody className="divide-y divide-gray-100">
               {isLoading ? (
-                <tr>
-                  <td colSpan={8} className="py-16 text-center">
-                    <RefreshCw
-                      size={24}
-                      className="mx-auto animate-spin text-gray-400"
-                    />
-                    <p className="mt-3 text-sm text-gray-500">
-                      Loading orders...
-                    </p>
-                  </td>
-                </tr>
+                <Loader2
+                  size={26}
+                  className="mx-auto animate-spin text-primary"
+                />
               ) : orderList.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-16 text-center">
+                  <td colSpan={9} className="py-16 text-center">
                     <Package size={32} className="mx-auto text-gray-300" />
                     <p className="mt-3 font-medium text-gray-700">
                       No orders found
@@ -352,7 +336,7 @@ const OrdersAdminPage: React.FC = () => {
                       {/* Expanded order details */}
                       {isExpanded && (
                         <tr className="bg-gray-50/70">
-                          <td colSpan={8} className="px-6 py-6">
+                          <td colSpan={9} className="px-6 py-6">
                             <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
                               {/* Ordered items */}
                               <div className="space-y-3 xl:col-span-2">

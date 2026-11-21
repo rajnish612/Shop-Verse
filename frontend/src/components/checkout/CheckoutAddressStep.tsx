@@ -4,7 +4,6 @@ import { MapPin, Loader2, AlertCircle, ShieldCheck } from "lucide-react";
 
 import { formatPrice } from "../../utils/helperFunctions";
 import type { Address, Coupon } from "../../types";
-import AddressCard from "../../components/ui/AddressCard";
 
 interface CheckoutAddressStepProps {
   addresses: Address[];
@@ -12,7 +11,6 @@ interface CheckoutAddressStepProps {
   onSelectAddress: (id: number) => void;
 
   loading: boolean;
-  error: string;
   onRetry: () => void;
 
   coupon: Coupon | null;
@@ -26,10 +24,7 @@ interface CheckoutAddressStepProps {
 const CheckoutAddressStep: React.FC<CheckoutAddressStepProps> = ({
   addresses,
   selectedAddressId,
-  onSelectAddress,
   loading,
-  error,
-  onRetry,
   coupon,
   subtotal,
   couponDiscount,
@@ -65,53 +60,9 @@ const CheckoutAddressStep: React.FC<CheckoutAddressStepProps> = ({
             </Link>
           </div>
 
-          {loading ? (
+          {loading && (
             <div className="flex justify-center py-16">
               <Loader2 size={32} className="animate-spin text-primary" />
-            </div>
-          ) : error ? (
-            <div className="text-center py-10">
-              <AlertCircle size={36} className="text-red-500 mx-auto mb-3" />
-
-              <p className="text-red-500">{error}</p>
-
-              <button
-                type="button"
-                onClick={onRetry}
-                className="mt-4 px-5 py-2 bg-primary text-white rounded-lg font-semibold"
-              >
-                Try Again
-              </button>
-            </div>
-          ) : addresses.length === 0 ? (
-            <div className="text-center py-12 border border-dashed border-gray-300 rounded-xl">
-              <MapPin size={40} className="text-gray-400 mx-auto mb-3" />
-
-              <h3 className="font-semibold text-gray-900">
-                No addresses found
-              </h3>
-
-              <p className="text-sm text-gray-500 mt-1">
-                Add an address to continue with checkout.
-              </p>
-
-              <Link
-                to="/addresses"
-                className="inline-block mt-5 px-5 py-3 bg-primary text-white rounded-xl font-semibold"
-              >
-                Add Address
-              </Link>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {addresses.map((address) => (
-                <AddressCard
-                  key={address.id}
-                  address={address}
-                  isSelected={selectedAddressId === address.id}
-                  onSelect={onSelectAddress}
-                />
-              ))}
             </div>
           )}
         </div>
@@ -167,12 +118,7 @@ const CheckoutAddressStep: React.FC<CheckoutAddressStepProps> = ({
 
             <button
               type="button"
-              disabled={
-                !selectedAddressId ||
-                loading ||
-                !!error ||
-                addresses.length === 0
-              }
+              disabled={!selectedAddressId || loading || addresses.length === 0}
               onClick={onContinue}
               className="w-full mt-6 py-4 rounded-xl bg-primary hover:bg-primary-dark text-white font-bold disabled:opacity-50 disabled:cursor-not-allowed"
             >

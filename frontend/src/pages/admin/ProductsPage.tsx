@@ -6,7 +6,14 @@ import {
 } from "../../types";
 import { attributesApi } from "../../services/attributes";
 import { productApis } from "../../services/products";
-import { AlertCircle, CheckCircle, Edit, Package, Plus } from "lucide-react";
+import {
+  AlertCircle,
+  CheckCircle,
+  Edit,
+  Loader2,
+  Package,
+  Plus,
+} from "lucide-react";
 import { formatPrice, getDiscountedPrice } from "../../utils/helperFunctions";
 import { categoriesApi } from "../../services/category";
 import CategoryTreeFilter from "../../components/ui/CategoryTreeFilter";
@@ -20,7 +27,11 @@ const ProductsPage: React.FC = () => {
   const [categories, setCategories] = React.useState<Category[]>([]);
 
   const [attributesLoading, setAttributesLoading] =
-    React.useState<boolean>(false);
+    React.useState<boolean>(true);
+
+  const [productsLoading, setProductsLoading] = React.useState<boolean>(true);
+  const [categoriesLoading, setCategoriesLoading] =
+    React.useState<boolean>(true);
   const [editingProduct, setEditingProduct] = React.useState<Product | null>(
     null,
   );
@@ -29,7 +40,7 @@ const ProductsPage: React.FC = () => {
   const [pageSize, setPageSize] = React.useState(10);
   const [totalPages, setTotalPages] = React.useState(0);
   const [totalElements, setTotalElements] = React.useState(0);
-  const [productsLoading, setProductsLoading] = React.useState(false);
+
   //For filters
   const [searchKeyword, setSearchKeyword] = React.useState("");
   const [attributeValueIds, setAttributeValueIds] = React.useState<Set<number>>(
@@ -71,13 +82,15 @@ const ProductsPage: React.FC = () => {
         size: pageSize,
       })
       .then((data) => {
-
         setProducts(data.content);
         setTotalPages(data.totalPages);
         setTotalElements(data.totalElements);
       })
       .catch((err) => {
         console.log("err fetching products", err);
+      })
+      .finally(() => {
+        setProductsLoading(false);
       });
   }, [
     searchKeyword,
@@ -99,6 +112,9 @@ const ProductsPage: React.FC = () => {
       .then((data) => setCategories(data))
       .catch((err) => {
         console.log("err fetching categories", err);
+      })
+      .finally(() => {
+        setCategoriesLoading(false);
       });
   }, []);
 
@@ -202,11 +218,18 @@ const ProductsPage: React.FC = () => {
             className="rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text-primary"
           />
           <div className="min-w-0">
-            <CategoryTreeFilter
-              categories={categories}
-              selectedIds={categoryIds}
-              onChange={handleSelectCategories}
-            />
+            {categoriesLoading ? (
+              <div className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm text-text-secondary">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Loading categories...
+              </div>
+            ) : (
+              <CategoryTreeFilter
+                categories={categories}
+                selectedIds={categoryIds}
+                onChange={handleSelectCategories}
+              />
+            )}
           </div>
           <select
             value={inStock}
@@ -261,31 +284,38 @@ const ProductsPage: React.FC = () => {
             className="rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text-primary"
           />
         </div>
-        {attributes.length > 0 && (
-          <div className="mt-4 grid grid-cols-1 gap-3 border-t border-border pt-4 md:grid-cols-2 lg:grid-cols-3">
-            {attributes.map((attribute) => (
-              <fieldset key={attribute.id}>
-                <legend className="mb-2 text-xs font-semibold text-text-secondary">
-                  {attribute.name}
-                </legend>
-                <div className="flex flex-wrap gap-2">
-                  {Object.entries(attribute.values).map(([id, value]) => (
-                    <label
-                      key={id}
-                      className="inline-flex items-center gap-1.5 text-xs text-text-secondary"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={attributeValueIds.has(Number(id))}
-                        onChange={() => toggleAttributeValue(Number(id))}
-                      />
-                      {value}
-                    </label>
-                  ))}
-                </div>
-              </fieldset>
-            ))}
+        {attributesLoading ? (
+          <div className="mt-4 flex items-center gap-2 border-t border-border pt-4 text-sm text-text-secondary">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Loading attribute filters...
           </div>
+        ) : (
+          attributes.length > 0 && (
+            <div className="mt-4 grid grid-cols-1 gap-3 border-t border-border pt-4 md:grid-cols-2 lg:grid-cols-3">
+              {attributes.map((attribute) => (
+                <fieldset key={attribute.id}>
+                  <legend className="mb-2 text-xs font-semibold text-text-secondary">
+                    {attribute.name}
+                  </legend>
+                  <div className="flex flex-wrap gap-2">
+                    {Object.entries(attribute.values).map(([id, value]) => (
+                      <label
+                        key={id}
+                        className="inline-flex items-center gap-1.5 text-xs text-text-secondary"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={attributeValueIds.has(Number(id))}
+                          onChange={() => toggleAttributeValue(Number(id))}
+                        />
+                        {value}
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+              ))}
+            </div>
+          )
         )}
       </div>
       {/* All products */}
@@ -305,7 +335,18 @@ const ProductsPage: React.FC = () => {
           </thead>
 
           <tbody className="divide-y divide-border">
-            {!products || products.length === 0 ? (
+            {productsLoading ? (
+              <tr>
+                <td colSpan={7} className="py-16 text-center">
+                  <div className="flex flex-col items-center justify-center gap-3">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    <p className="text-sm text-text-secondary">
+                      Loading products...
+                    </p>
+                  </div>
+                </td>
+              </tr>
+            ) : !products || products.length === 0 ? (
               <tr>
                 <td colSpan={7} className="py-12 text-center text-text-muted">
                   <Package className="mx-auto mb-2 h-10 w-10 text-text-muted/60" />
@@ -454,6 +495,7 @@ const ProductsPage: React.FC = () => {
             <span className="text-xs text-text-secondary">Rows per page</span>
 
             <select
+              disabled={productsLoading}
               value={pageSize}
               onChange={(event) => {
                 setPageSize(Number(event.target.value));

@@ -5,6 +5,7 @@ import {
   QrCode,
   Banknote,
   AlertCircle,
+  Loader2,
 } from "lucide-react";
 
 import { PaymentMethod } from "../../types";
@@ -17,7 +18,6 @@ interface CheckoutPaymentStepProps {
   onBack: () => void;
   onPlaceOrder: () => void;
   placingOrder: boolean;
-  error: string;
 }
 
 const CheckoutPaymentStep: React.FC<CheckoutPaymentStepProps> = ({
@@ -28,7 +28,6 @@ const CheckoutPaymentStep: React.FC<CheckoutPaymentStepProps> = ({
   onBack,
   onPlaceOrder,
   placingOrder,
-  error,
 }) => {
   const isUpiSelected = selectedPaymentMethod === PaymentMethod.UPI;
   const isCodSelected = selectedPaymentMethod === PaymentMethod.COD;
@@ -146,21 +145,13 @@ const CheckoutPaymentStep: React.FC<CheckoutPaymentStepProps> = ({
         </label>
       </div>
 
-      {/* API Error */}
-      {error && (
-        <div className="flex items-center gap-2 p-3 rounded-lg bg-red-50 text-red-600 text-sm">
-          <AlertCircle size={18} className="shrink-0" />
-          <p>{error}</p>
-        </div>
-      )}
-
       {/* Navigation */}
       <div className="pt-4 flex items-center justify-between border-t border-gray-100">
         <button
           type="button"
           onClick={onBack}
           disabled={placingOrder}
-          className="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-gray-900 disabled:opacity-50"
+          className="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-gray-900 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
         >
           <ArrowLeft size={17} />
           Back to Address
@@ -170,11 +161,19 @@ const CheckoutPaymentStep: React.FC<CheckoutPaymentStepProps> = ({
           type="button"
           onClick={handlePlaceOrder}
           disabled={placingOrder || (isUpiSelected && !upiId.trim())}
-          className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary hover:bg-primary-dark text-white font-bold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex min-w-[155px] items-center justify-center gap-2 px-6 py-3 rounded-xl bg-primary hover:bg-primary-dark text-white font-bold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {placingOrder ? "Placing Order..." : "Place Order"}
-
-          {!placingOrder && <ArrowRight size={17} />}
+          {placingOrder ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Placing Order...
+            </>
+          ) : (
+            <>
+              Place Order
+              <ArrowRight size={17} />
+            </>
+          )}
         </button>
       </div>
     </div>

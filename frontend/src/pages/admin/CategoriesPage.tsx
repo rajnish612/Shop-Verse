@@ -6,6 +6,7 @@ import {
   Edit2,
   Folder,
   FolderOpen,
+  Loader2,
   Plus,
   Trash2,
   X,
@@ -41,6 +42,7 @@ const CreateOrEditCategoryModal: React.FC<CreateOrEditCategoryModalProps> = ({
             {editingCategory ? "Edit Category" : "Add New Category"}
           </h3>
           <button
+            disabled={isSaving}
             onClick={onClose}
             className="rounded p-1 text-text-muted hover:text-text-primary"
           >
@@ -80,6 +82,7 @@ const CreateOrEditCategoryModal: React.FC<CreateOrEditCategoryModalProps> = ({
           <div className="mt-6 flex justify-end gap-3 pt-4 border-t border-border">
             <button
               type="button"
+              disabled={isSaving}
               onClick={onClose}
               className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-text-secondary hover:bg-surface-hover"
             >
@@ -88,13 +91,18 @@ const CreateOrEditCategoryModal: React.FC<CreateOrEditCategoryModalProps> = ({
             <button
               onClick={onSaveCategory}
               disabled={isSaving}
-              className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-primary-dark disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex min-w-[145px] items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-primary-dark disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isSaving
-                ? "Saving..."
-                : editingCategory
-                  ? "Save Changes"
-                  : "Create Category"}
+              {isSaving ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : editingCategory ? (
+                "Save Changes"
+              ) : (
+                "Create Category"
+              )}
             </button>
           </div>
         </div>
@@ -109,6 +117,7 @@ const renderCategoryTree = (
   onAddModalOpen: (id?: number) => void,
   onEditModalOpen: (category: Category) => void,
   onCategoryDelete: (id: number) => void,
+  deletingCategoryId: number | null,
 ): React.ReactNode => {
   const isRoot = depth === 0;
 
@@ -166,10 +175,15 @@ const renderCategoryTree = (
           </button>
           <button
             onClick={() => onCategoryDelete(category.id)}
-            className="rounded p-1.5 text-text-secondary hover:bg-surface hover:text-danger transition"
+            disabled={deletingCategoryId !== null}
+            className="rounded p-1.5 text-text-secondary hover:bg-surface hover:text-danger transition disabled:cursor-not-allowed disabled:opacity-50"
             title="Delete Category"
           >
-            <Trash2 className="h-4 w-4" />
+            {deletingCategoryId === category.id ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Trash2 className="h-4 w-4" />
+            )}
           </button>
         </div>
       </div>
@@ -185,6 +199,7 @@ const renderCategoryTree = (
               onAddModalOpen,
               onEditModalOpen,
               onCategoryDelete,
+              deletingCategoryId,
             ),
           )}
         </div>
@@ -194,6 +209,11 @@ const renderCategoryTree = (
 };
 //Categories page component
 const CategoriesPage = () => {
+  const [deletingCategoryId, setDeletingCategoryId] = React.useState<
+    number | null
+  >(null);
+  const [isLoading, setIsLoading] = React.useState<boolean>(true);
+  const [isDeleting, setIsDeleting] = React.useState<boolean>(false);
   const [categories, setCategories] = React.useState<Category[]>([]);
   const [isModalOpen, setIsModalOpen] = React.useState<boolean>(false);
   const [name, setName] = React.useState<string>("");
@@ -214,6 +234,7 @@ const CategoriesPage = () => {
     } catch (err) {
       console.log("err loading", err);
     } finally {
+      setIsLoading(false);
     }
   };
   //handle category add modal
@@ -238,7 +259,7 @@ const CategoriesPage = () => {
   const createCategory = async () => {
     setIsSaving(true);
     try {
-      const data = await categoriesApi.create({
+      await categoriesApi.create({
         name,
         code,
         parentId: categoryId,
@@ -259,7 +280,7 @@ const CategoriesPage = () => {
     setIsSaving(true);
 
     try {
-      const data = await categoriesApi.update(categoryId, {
+      await categoriesApi.update(categoryId, {
         name: name.trim(),
         code: code.trim(),
       });
@@ -285,11 +306,17 @@ const CategoriesPage = () => {
   };
   //Delete category
   const handleDeleteCategory = async (id: number) => {
-    if (!id) return;
+    if (deletingCategoryId !== null) return;
+
     try {
+      setDeletingCategoryId(id);
       await categoriesApi.remove(id);
-      loadCategories();
-    } catch (err) {}
+      await loadCategories();
+    } catch (err) {
+      console.error("Error deleting category:", err);
+    } finally {
+      setDeletingCategoryId(null);
+    }
   };
 
   //Fetch all categories
@@ -320,14 +347,32 @@ const CategoriesPage = () => {
       </div>
 
       {/* Render all categories */}
-      {categories.map((root) =>
-        renderCategoryTree(
-          root,
-          0,
-          handleAddModalOpen,
-          handleEditModalOpen,
-          handleDeleteCategory,
-        ),
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center gap-3 py-16">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-sm text-text-secondary">Loading categories...</p>
+        </div>
+      ) : categories.length > 0 ? (
+        categories.map((root) =>
+          renderCategoryTree(
+            root,
+            0,
+            handleAddModalOpen,
+            handleEditModalOpen,
+            handleDeleteCategory,
+            deletingCategoryId,
+          ),
+        )
+      ) : (
+        <div className="py-16 text-center">
+          <Folder className="mx-auto mb-3 h-8 w-8 text-text-muted" />
+          <p className="text-sm font-medium text-text-primary">
+            No categories found
+          </p>
+          <p className="mt-1 text-xs text-text-secondary">
+            Create your first category to organize your products.
+          </p>
+        </div>
       )}
       {isModalOpen && (
         <CreateOrEditCategoryModal

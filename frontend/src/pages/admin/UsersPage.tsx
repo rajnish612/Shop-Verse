@@ -1,6 +1,7 @@
 import {
   Calendar,
   Edit2,
+  Loader2,
   Mail,
   Search,
   Shield,
@@ -13,6 +14,7 @@ import {
 import React from "react";
 import { RoleType, type UserDetails } from "../../types";
 import { userApi } from "../../services/users";
+import { toast } from "sonner";
 
 //Props for role modal
 interface RoleModalProps {
@@ -21,6 +23,7 @@ interface RoleModalProps {
   selectedRoles: RoleType[];
   handleRoleToggle: (role: RoleType) => void;
   handleSaveRoles: () => void;
+  isSaving: boolean;
 }
 
 //Role modal component
@@ -30,6 +33,7 @@ const RoleModal: React.FC<RoleModalProps> = ({
   selectedRoles,
   handleRoleToggle,
   handleSaveRoles,
+  isSaving,
 }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
@@ -81,6 +85,7 @@ const RoleModal: React.FC<RoleModalProps> = ({
                 <input
                   type="checkbox"
                   checked={isChecked}
+                  disabled={isSaving}
                   onChange={() => handleRoleToggle(role)}
                   className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
                 />
@@ -100,9 +105,17 @@ const RoleModal: React.FC<RoleModalProps> = ({
           <button
             type="button"
             onClick={handleSaveRoles}
-            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-primary-dark"
+            disabled={isSaving}
+            className="inline-flex min-w-[120px] items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-primary-dark disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Save Roles
+            {isSaving ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              "Save Roles"
+            )}
           </button>
         </div>
       </div>
@@ -110,6 +123,11 @@ const RoleModal: React.FC<RoleModalProps> = ({
   );
 };
 const UsersPage = () => {
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [isSavingRoles, setIsSavingRoles] = React.useState(false);
+  const [updatingUserId, setUpdatingUserId] = React.useState<number | null>(
+    null,
+  );
   const [searchQuery, setSearchQuery] = React.useState<string>("");
   const [roleFilter, setRoleFilter] = React.useState<RoleType | "ALL">("ALL");
   const [users, setUsers] = React.useState<UserDetails[]>([]);
@@ -120,9 +138,7 @@ const UsersPage = () => {
 
   const handleRoleToggle = (role: RoleType) => {
     setSelectedRoles((prev) =>
-      prev.includes(role)
-        ? prev.filter((role) => role != role)
-        : [role, ...prev],
+      prev.includes(role) ? prev.filter((r) => r !== role) : [...prev, role],
     );
   };
   //Get role colors
@@ -138,30 +154,42 @@ const UsersPage = () => {
 
   //Update user roles
   const saveRoles = async () => {
-    if (!editingUser?.id) return;
-    userApi
-      .updateRoles(editingUser.id, selectedRoles)
-      .then((data) => {
-        setUsers((prev) =>
-          prev.map((u) => (u.id === data.id ? { ...data } : u)),
-        );
-        setEditingUser(null);
-      })
+    if (!editingUser?.id || isSavingRoles) return;
 
-      .catch((err) => console.log("err updaing roles", err));
+    try {
+      setIsSavingRoles(true);
+
+      const data = await userApi.updateRoles(editingUser.id, selectedRoles);
+
+      toast.success("User roles updated");
+
+      setUsers((prev) => prev.map((u) => (u.id === data.id ? data : u)));
+
+      setEditingUser(null);
+    } catch (err) {
+      console.error("Error updating user roles:", err);
+    } finally {
+      setIsSavingRoles(false);
+    }
   };
 
-  const updateStatus = (id: number, active: boolean) => {
-    userApi
-      .updateStatus(id, active)
-      .then((data) => {
-        setUsers((prev) =>
-          prev.map((u) => (u.id === data.id ? { ...data } : u)),
-        );
-      })
-      .catch((err) => {
-        console.log("err");
-      });
+  //Update user status
+  const updateStatus = async (id: number, active: boolean) => {
+    if (updatingUserId !== null) return;
+
+    try {
+      setUpdatingUserId(id);
+
+      const data = await userApi.updateStatus(id, active);
+
+      toast.success("User status updated");
+
+      setUsers((prev) => prev.map((u) => (u.id === data.id ? data : u)));
+    } catch (err) {
+      console.error("Error updating user status:", err);
+    } finally {
+      setUpdatingUserId(null);
+    }
   };
   //Fetch all users
   React.useEffect(() => {
@@ -170,9 +198,11 @@ const UsersPage = () => {
       .then((data) => setUsers(data))
       .catch((err) => {
         console.log(err);
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
   }, [roleFilter, searchQuery]);
-  console.log("role filter", roleFilter);
 
   return (
     <div className="space-y-6">
@@ -227,7 +257,18 @@ const UsersPage = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {users.length === 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={5} className="py-16 text-center">
+                    <div className="flex flex-col items-center justify-center gap-3">
+                      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                      <p className="text-sm text-text-secondary">
+                        Loading users...
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              ) : users.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-12 text-center text-text-muted">
                     <UserIcon className="mx-auto h-10 w-10 text-text-muted/60 mb-2" />
@@ -316,14 +357,20 @@ const UsersPage = () => {
                         </button>
                         <button
                           onClick={() => updateStatus(user.id, !user.active)}
-                          className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-medium transition ${
+                          disabled={updatingUserId !== null}
+                          className={`inline-flex min-w-[100px] items-center justify-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-60 ${
                             user.active
                               ? "border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100"
                               : "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
                           }`}
                           title={user.active ? "Block User" : "Unblock User"}
                         >
-                          {user.active ? (
+                          {updatingUserId === user.id ? (
+                            <>
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              Updating...
+                            </>
+                          ) : user.active ? (
                             <>
                               <UserX className="h-3.5 w-3.5" />
                               Block
@@ -353,6 +400,7 @@ const UsersPage = () => {
           selectedRoles={selectedRoles}
           handleRoleToggle={handleRoleToggle}
           handleSaveRoles={saveRoles}
+          isSaving={isSavingRoles}
         />
       )}
     </div>

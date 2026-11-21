@@ -9,7 +9,7 @@ import { attributesApi } from "../../services/attributes";
 import { categoriesApi } from "../../services/category";
 import { productApis } from "../../services/products";
 import ProductGrid from "../../components/ProductsGrid";
-import { Search } from "lucide-react";
+import { Loader2, Search } from "lucide-react";
 import { useLocation } from "react-router";
 const PAGE_SIZE = 12;
 const ShopPage = () => {
@@ -19,7 +19,9 @@ const ShopPage = () => {
   const [categoryIds, setCategoryIds] = React.useState<Set<number>>(
     new Set(data?.categoryId ? [data.categoryId] : []),
   );
-  const [isLoading, setLoading] = React.useState<boolean>(false);
+  const [isLoading, setLoading] = React.useState<boolean>(true);
+  const [attributesLoading, setAttributesLoading] = React.useState(true);
+  const [categoriesLoading, setCategoriesLoading] = React.useState(true);
   const [minPrice, setMinPrice] = React.useState("");
   const [maxPrice, setMaxPrice] = React.useState("");
   const [inStock, setInStock] = React.useState("");
@@ -81,8 +83,8 @@ const ShopPage = () => {
     attributesApi
       .getAll()
       .then((data) => setAttributes(data))
-      .catch((err) => console.log("err", err));
-    //   .finally(() => setIsLoading(false));
+      .catch((err) => console.log("err", err))
+      .finally(() => setAttributesLoading(false));
   }, []);
 
   //Load categories
@@ -90,7 +92,10 @@ const ShopPage = () => {
     categoriesApi
       .getAll()
       .then((data) => setCategories(data))
-      .catch((err) => console.log("err fetching categories"));
+      .catch((err) => console.log("err fetching categories", err))
+      .finally(() => {
+        setCategoriesLoading(false);
+      });
   }, []);
 
   //fetch products
@@ -121,6 +126,9 @@ const ShopPage = () => {
       })
       .catch((err) => {
         console.log("err fetching products", err);
+      })
+      .finally(() => {
+        setLoading(false);
       });
   }, [
     searchKeyword,
@@ -162,24 +170,31 @@ const ShopPage = () => {
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
         {/* Filters */}
         <aside>
-          <ShopFilters
-            categories={categories}
-            categoryIds={categoryIds}
-            handleSelectCategories={handleSelectCategories}
-            minPrice={minPrice}
-            setMinPrice={setMinPrice}
-            maxPrice={maxPrice}
-            setMaxPrice={setMaxPrice}
-            inStock={inStock}
-            setInStock={setInStock}
-            minRating={minRating}
-            setMinRating={setMinRating}
-            attributes={attributes}
-            attributeValueIds={attributeValueIds}
-            toggleAttributeValue={toggleAttributeValue}
-            onApply={applyFilters}
-            onReset={resetFilters}
-          />
+          {categoriesLoading || attributesLoading ? (
+            <div className="flex items-center justify-center gap-2 rounded-xl border border-border bg-surface p-6 text-sm text-text-secondary">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Loading filters...
+            </div>
+          ) : (
+            <ShopFilters
+              categories={categories}
+              categoryIds={categoryIds}
+              handleSelectCategories={handleSelectCategories}
+              minPrice={minPrice}
+              setMinPrice={setMinPrice}
+              maxPrice={maxPrice}
+              setMaxPrice={setMaxPrice}
+              inStock={inStock}
+              setInStock={setInStock}
+              minRating={minRating}
+              setMinRating={setMinRating}
+              attributes={attributes}
+              attributeValueIds={attributeValueIds}
+              toggleAttributeValue={toggleAttributeValue}
+              onApply={applyFilters}
+              onReset={resetFilters}
+            />
+          )}
         </aside>
 
         {/* Products */}
@@ -195,8 +210,9 @@ const ShopPage = () => {
           </div>
 
           {isLoading ? (
-            <div className="py-16 text-center text-text-secondary">
-              Loading products...
+            <div className="flex flex-col items-center justify-center gap-3 py-20">
+              <Loader2 className="h-9 w-9 animate-spin text-primary" />
+              <p className="text-sm text-text-secondary">Loading products...</p>
             </div>
           ) : products.length > 0 ? (
             <>
@@ -207,7 +223,7 @@ const ShopPage = () => {
                 <div className="mt-10 flex flex-wrap items-center justify-center gap-2">
                   <button
                     type="button"
-                    disabled={page === 0}
+                    disabled={isLoading}
                     onClick={() => setPage((current) => current - 1)}
                     className="rounded-lg border border-border px-4 py-2 text-sm text-text-primary transition hover:bg-surface-alt disabled:cursor-not-allowed disabled:opacity-40"
                   >
@@ -231,7 +247,7 @@ const ShopPage = () => {
 
                   <button
                     type="button"
-                    disabled={page >= totalPages - 1}
+                    disabled={isLoading || page >= totalPages - 1}
                     onClick={() => setPage((current) => current + 1)}
                     className="rounded-lg border border-border px-4 py-2 text-sm text-text-primary transition hover:bg-surface-alt disabled:cursor-not-allowed disabled:opacity-40"
                   >

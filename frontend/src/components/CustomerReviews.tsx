@@ -1,7 +1,7 @@
 import React from "react";
 import type { Review } from "../types";
 import { reviewApis } from "../services/reviews";
-import { Star } from "lucide-react";
+import { Loader2, Star } from "lucide-react";
 import ReviewCard from "./ui/ReviewCard";
 import CreateReview from "./CreateReview";
 
@@ -15,7 +15,7 @@ const CustomerReviews: React.FC<{ productId: number }> = ({ productId }) => {
       .getAll(productId)
       .then((data) => setReviews(data))
       .catch((err) => {
-        console.log("err fetching reviews");
+        console.error("Failed to fetch reviews:", err);
       })
       .finally(() => setLoadingReviews(false));
   }, [productId]);
@@ -50,9 +50,10 @@ const CustomerReviews: React.FC<{ productId: number }> = ({ productId }) => {
 
       {/* Reviews */}
       {loadingReviews ? (
-        <p className="text-sm text-text-muted py-8 text-center">
-          Loading reviews...
-        </p>
+        <div className="flex flex-col items-center justify-center py-12 gap-3">
+          <Loader2 className="h-7 w-7 animate-spin text-primary" />
+          <p className="text-sm text-text-muted">Loading reviews...</p>
+        </div>
       ) : reviews.length > 0 ? (
         <div className="divide-y divide-border">
           {reviews.map((review) => (

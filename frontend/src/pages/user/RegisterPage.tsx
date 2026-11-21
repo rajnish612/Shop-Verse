@@ -8,8 +8,10 @@ import {
   EyeOff,
   ArrowRight,
   ShoppingBag,
+  Loader2,
 } from "lucide-react";
 import { authApis } from "../../services/auth";
+import { toast } from "sonner";
 
 export const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
@@ -37,7 +39,7 @@ export const RegisterPage: React.FC = () => {
     }
     try {
       const data = await authApis.registerUser({ name, email, password });
-      console.log("User registered", data);
+      toast.success("User registered successfully");
     } catch (err) {
       console.log("err", err);
     }
@@ -207,7 +209,11 @@ export const RegisterPage: React.FC = () => {
               className="w-full mt-2 py-3.5 px-4 rounded-xl bg-primary hover:bg-primary-dark text-white font-bold text-sm transition-all shadow-md shadow-primary/25 flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {isLoading ? (
-                <span>Creating account...</span>
+                <div className="flex items-center space-x-2 justify-center">
+                  {" "}
+                  <Loader2 className="animate-spin" />
+                  <span>Creating account...</span>
+                </div>
               ) : (
                 <>
                   <span>Create Account</span>

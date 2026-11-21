@@ -7,8 +7,6 @@ import { OrderStatus } from "../../types";
 import { orderApis } from "../../services/order";
 import OrderCard from "../../components/order/OrderCard";
 
-const TEST_USER_ID = 1;
-
 const OrdersPage: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | "ALL">(
@@ -16,22 +14,18 @@ const OrdersPage: React.FC = () => {
   );
 
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
 
   const fetchOrders = useCallback(async () => {
     try {
       setLoading(true);
-      setError("");
 
       const data = await orderApis.getOrdersForUser(
-        TEST_USER_ID,
         selectedStatus === "ALL" ? undefined : selectedStatus,
       );
 
       setOrders(data);
     } catch (err) {
       console.error("Failed to fetch orders:", err);
-      setError("Unable to load your orders. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -104,21 +98,8 @@ const OrdersPage: React.FC = () => {
           </div>
         )}
 
-        {/* Error */}
-        {!loading && error && (
-          <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center">
-            <p className="font-medium text-red-700">{error}</p>
-            <button
-              onClick={fetchOrders}
-              className="mt-3 text-sm font-semibold text-red-700 underline"
-            >
-              Try Again
-            </button>
-          </div>
-        )}
-
         {/* Orders */}
-        {!loading && !error && orders.length > 0 && (
+        {!loading && orders.length > 0 && (
           <div className="space-y-5">
             {orders.map((order) => (
               <OrderCard key={order.id} order={order} />
@@ -127,7 +108,7 @@ const OrdersPage: React.FC = () => {
         )}
 
         {/* Empty state */}
-        {!loading && !error && orders.length === 0 && (
+        {!loading && orders.length === 0 && (
           <div className="rounded-2xl border border-gray-200 bg-white px-6 py-16 text-center">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 text-gray-400">
               <Package size={30} />
