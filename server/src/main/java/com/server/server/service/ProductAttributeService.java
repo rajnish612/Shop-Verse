@@ -116,6 +116,28 @@ public class ProductAttributeService {
         productAttributeValueRepo.deleteById(valueId);
     }
 
+    //Get attribute value ids based on their names and values
+    public List<Long> findAttributeValueIds(
+            Map<String, List<String>> requestedAttributes
+    ) {
+        if (requestedAttributes == null || requestedAttributes.isEmpty()) {
+            return List.of();
+        }
+
+        return requestedAttributes.entrySet()
+                .stream()
+                .flatMap(entry ->
+                        productAttributeValueRepo
+                                .findByProductAttribute_NameIgnoreCaseAndValueIn(
+                                        entry.getKey(),
+                                        entry.getValue()
+                                )
+                                .stream()
+                )
+                .map(ProductAttributeValue::getId)
+                .toList();
+    }
+
     //To convert ProductAttribute entity and its values to ProductAttributeResponseDTO
     private AttributeResponseDTO toProductAttributeResponseDTO(ProductAttribute productAttribute) {
         return AttributeResponseDTO.builder()

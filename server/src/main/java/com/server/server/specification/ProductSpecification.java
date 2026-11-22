@@ -184,18 +184,24 @@ public class ProductSpecification {
             Join<Product, ProductAttributeValue> attributeJoin =
                     subRoot.join("productAttributeValues", JoinType.INNER);
 
+//            subquery.select(subRoot.get("id"))
+//                    .where(
+//                            cb.equal(subRoot.get("id"), root.get("id")),
+//                            attributeJoin.get("id")
+//                                    .in(attributeValueIds)
+//                    )
+//                    .groupBy(subRoot.get("id"))
+//                    .having(
+//                            cb.equal(
+//                                    cb.countDistinct(attributeJoin.get("id")),
+//                                    (long) attributeValueIds.size()
+//                            )
+//                    );
             subquery.select(subRoot.get("id"))
                     .where(
                             cb.equal(subRoot.get("id"), root.get("id")),
                             attributeJoin.get("id")
                                     .in(attributeValueIds)
-                    )
-                    .groupBy(subRoot.get("id"))
-                    .having(
-                            cb.equal(
-                                    cb.countDistinct(attributeJoin.get("id")),
-                                    (long) attributeValueIds.size()
-                            )
                     );
 
             return cb.exists(subquery);

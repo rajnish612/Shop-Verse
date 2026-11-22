@@ -15,10 +15,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -152,6 +149,38 @@ public class CategoryService {
                 .orElseThrow(() -> new ApiException("Category not found", HttpStatus.NOT_FOUND));
     }
 
+    //Find category IDs by names
+    public List<Long> findCategoryIdsByNames(Set<String> categoryNames) {
+
+        if (categoryNames == null || categoryNames.isEmpty()) {
+            return List.of();
+        }
+
+        List<CategoryResponseDTO> allCategories = new ArrayList<>();
+
+        for (CategoryResponseDTO category : getAllCategories()) {
+            collectCategories(category, allCategories);
+        }
+
+        return allCategories.stream()
+                .filter(category -> categoryNames.stream()
+                        .anyMatch(name -> name.equalsIgnoreCase(category.getName())))
+                .map(CategoryResponseDTO::getId)
+                .toList();
+    }
+
+    private void collectCategories(
+            CategoryResponseDTO category,
+            List<CategoryResponseDTO> result
+    ) {
+        result.add(category);
+
+        if (category.getChildren() != null) {
+            category.getChildren()
+                    .forEach(child ->
+                            collectCategories(child, result));
+        }
+    }
 
     //Find parent category
     private Category findParent(Long parentId) {

@@ -8,4 +8,9 @@ import java.util.Set;
 
 public interface ProductAttributeValueRepo extends JpaRepository<ProductAttributeValue, Long> {
     Set<ProductAttributeValue> findAllByIdInAndProductAttributeId(List<Long> valueIds, Long attributeId);
+
+    List<ProductAttributeValue> findByProductAttribute_NameIgnoreCaseAndValueIn(
+            String attributeName,
+            List<String> values
+    );
 }
