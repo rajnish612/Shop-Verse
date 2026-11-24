@@ -1,6 +1,6 @@
 import React from "react";
 import { productApis } from "../services/products";
-import {type Product } from "../types";
+import { type Product } from "../types";
 import ProductCard from "./ProductCard";
 import { ArrowRight, Flame } from "lucide-react";
 import { Link } from "react-router";
@@ -12,7 +12,7 @@ const Deals = () => {
   React.useEffect(() => {
     productApis
       .getDeals()
-      .then((data) => setProducts(data))
+      .then((data) => setProducts(data.content))
       .catch((err) => console.log("err fetching product deals", err));
   }, []);
   return (

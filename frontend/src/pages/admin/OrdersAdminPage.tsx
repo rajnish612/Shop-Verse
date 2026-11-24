@@ -79,7 +79,11 @@ const OrdersAdminPage: React.FC = () => {
 
   const [isLoading, setIsLoading] = useState(true);
   const [updatingOrderId, setUpdatingOrderId] = useState<number | null>(null);
-
+  //Pagination
+  const [currentPage, setCurrentPage] = useState(0);
+  const [pageSize] = useState(10);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
   // Fetch orders
   const fetchOrders = useCallback(async () => {
     try {
@@ -88,15 +92,19 @@ const OrdersAdminPage: React.FC = () => {
       const data = await orderApis.getAllForAdmin(
         searchQuery.trim() || undefined,
         selectedStatus === "ALL" ? undefined : selectedStatus,
+        currentPage,
+        pageSize,
       );
 
-      setOrderList(data);
+      setOrderList(data.content);
+      setTotalPages(data.totalPages);
+      setTotalElements(data.totalElements);
     } catch (err) {
       console.log("Error fetching orders:", err);
     } finally {
       setIsLoading(false);
     }
-  }, [searchQuery, selectedStatus]);
+  }, [searchQuery, selectedStatus, currentPage, pageSize]);
 
   useEffect(() => {
     fetchOrders();
@@ -148,7 +156,7 @@ const OrdersAdminPage: React.FC = () => {
         <div className="flex items-center gap-2 text-sm text-gray-500">
           <Package size={17} />
           <span>
-            {orderList.length} {orderList.length === 1 ? "order" : "orders"}
+            {totalElements} {totalElements === 1 ? "order" : "orders"}
           </span>
         </div>
       </div>
@@ -164,7 +172,11 @@ const OrdersAdminPage: React.FC = () => {
           <input
             type="text"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+
+              setCurrentPage(0);
+            }}
             placeholder="Search by order ID, customer, email or transaction ID..."
             className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-4 text-sm text-gray-800 outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/10"
           />
@@ -172,7 +184,10 @@ const OrdersAdminPage: React.FC = () => {
 
         <select
           value={selectedStatus}
-          onChange={(e) => setSelectedStatus(e.target.value as StatusFilter)}
+          onChange={(e) => {
+            setSelectedStatus(e.target.value as StatusFilter);
+            setCurrentPage(0);
+          }}
           className="rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
         >
           {STATUS_OPTIONS.map((status) => (
@@ -549,7 +564,36 @@ const OrdersAdminPage: React.FC = () => {
           </table>
         </div>
       </div>
+      {/* Pagination */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm text-gray-500">
+          Showing {totalElements === 0 ? 0 : currentPage * pageSize + 1} to{" "}
+          {Math.min((currentPage + 1) * pageSize, totalElements)} of{" "}
+          {totalElements} orders
+        </p>
 
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setCurrentPage((prev) => prev - 1)}
+            disabled={currentPage === 0 || isLoading}
+            className="rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Previous
+          </button>
+
+          <span className="px-2 text-sm text-gray-600">
+            Page {totalPages === 0 ? 0 : currentPage + 1} of {totalPages}
+          </span>
+
+          <button
+            onClick={() => setCurrentPage((prev) => prev + 1)}
+            disabled={currentPage >= totalPages - 1 || isLoading}
+            className="rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Next
+          </button>
+        </div>
+      </div>
       <p className="text-xs text-gray-400">
         Select an order to view its products, customer information, shipping
         address and payment details.

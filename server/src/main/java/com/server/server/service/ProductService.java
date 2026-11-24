@@ -19,6 +19,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -37,6 +38,15 @@ public class ProductService {
 
     //create a new product
     public ProductResponseDTO createProduct(CreateProductRequestDTO dto) {
+        if (dto.getDiscount()
+                .compareTo(BigDecimal.ZERO) < 0 ||
+                dto.getDiscount()
+                        .compareTo(BigDecimal.valueOf(80)) > 0) {
+            throw new ApiException(
+                    "Discount must be between 0% and 80%",
+                    HttpStatus.BAD_REQUEST
+            );
+        }
         List<ProductAttributeValue> values = productAttributeValueRepo.findAllById(dto.getAttributeValueIds());
         Category category = categoryRepo.findById(dto.getCategoryId())
                 .orElseThrow(() -> new ApiException("Category not found", HttpStatus.NOT_FOUND));
@@ -104,12 +114,9 @@ public class ProductService {
     }
 
     //Get latest deals of products
-    public List<ProductResponseDTO> getDealsOfTheDay() {
-        List<Product> products = productRepo.findDeals();
-        return products.stream()
-
-                .map(this::toProductResponseDTO)
-                .toList();
+    public Page<ProductResponseDTO> getDealsOfTheDay(Pageable pageable) {
+        return productRepo.findDeals(pageable)
+                .map(this::toProductResponseDTO);
     }
 
     //Get product by productId

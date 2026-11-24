@@ -90,8 +90,19 @@ export const productApis = {
   },
 
   //Get latest deals of products
-  async getDeals(): Promise<Product[]> {
-    const { data } = await api.get("/product/deals");
+  async getDeals(
+    page: number = 0,
+    size: number = 10,
+  ): Promise<PaginatedResponse<Product>> {
+    const params = new URLSearchParams();
+
+    params.append("page", page.toString());
+    params.append("size", size.toString());
+
+    const { data } = await api.get<PaginatedResponse<Product>>(
+      `/product/deals?${params.toString()}`,
+    );
+
     return data;
   },
 

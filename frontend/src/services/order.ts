@@ -1,7 +1,16 @@
 import type { Order, OrderStatus } from "../types";
 import api from "./api";
 import type { PaymentMethod } from "./index";
-
+export interface PageResponse<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  number: number;
+  size: number;
+  first: boolean;
+  last: boolean;
+  empty: boolean;
+}
 export interface CreateOrderRequest {
   userId: number;
   addressId: number;
@@ -41,7 +50,9 @@ export const orderApis = {
   async getAllForAdmin(
     keyWord?: string,
     orderStatus?: OrderStatus,
-  ): Promise<Order[]> {
+    page: number = 0,
+    size: number = 10,
+  ): Promise<PageResponse<Order>> {
     const params = new URLSearchParams();
 
     if (keyWord) {
@@ -51,8 +62,12 @@ export const orderApis = {
     if (orderStatus) {
       params.append("status", orderStatus);
     }
+    params.append("page", page.toString());
+    params.append("size", size.toString());
 
-    const response = await api.get<Order[]>(`/order/all?${params.toString()}`);
+    const response = await api.get<PageResponse<Order>>(
+      `/order/all?${params.toString()}`,
+    );
     return response.data;
   },
   //Updat order status

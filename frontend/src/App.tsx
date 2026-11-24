@@ -24,6 +24,7 @@ import RequireRole from "./components/auth/RequireRole";
 import RequireAuth from "./components/auth/RequireAuth";
 import ProfilePage from "./pages/user/ProfilePage";
 import { Toaster } from "sonner";
+import UsedCouponsPage from "./pages/user/UsedCouponsPage";
 function App() {
   return (
     <>
@@ -62,6 +63,7 @@ function App() {
                 <Route path="addresses" element={<AddressPage />} />
                 <Route path="checkout" element={<CheckoutPage />} />
                 <Route path="orders" element={<OrdersPage />} />
+                <Route path="coupons" element={<UsedCouponsPage />} />
               </Route>
             </Route>
           </Routes>

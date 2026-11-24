@@ -67,6 +67,23 @@ const CartPage: React.FC = () => {
       setIsApplyingCoupon(true);
 
       const coupon = await couponApi.apply(code);
+      // Calculate the coupon discount
+      const discountAmount = coupon.percentage
+        ? Math.round((discountedItemsTotal * coupon.discount) / 100)
+        : coupon.discount;
+
+      // Validate discount
+      if (coupon.discount <= 0) {
+        setCouponError("Invalid coupon discount.");
+        return;
+      }
+
+
+      // Do not allow a completely free order
+      if (discountAmount >= discountedItemsTotal) {
+        setCouponError("This coupon cannot make your order completely free.");
+        return;
+      }
       toast.success("Coupon applied successfully!");
       setAppliedCoupon(coupon);
       setCouponCode("");

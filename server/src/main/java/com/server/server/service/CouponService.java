@@ -1,7 +1,6 @@
 package com.server.server.service;
 
 
-
 import com.server.server.dto.CouponRequestDTO;
 import com.server.server.dto.CouponResponseDTO;
 import com.server.server.entity.Coupon;
@@ -9,6 +8,9 @@ import com.server.server.exception.ApiException;
 import com.server.server.repository.CouponRepo;
 import com.server.server.specification.CouponSpecification;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.Nullable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
@@ -27,6 +29,31 @@ public class CouponService {
 
     //Method to create coupon
     public CouponResponseDTO createCoupon(CouponRequestDTO dto) {
+        if (dto.isPercentage()) {
+            if (dto.getDiscount()
+                    .compareTo(BigDecimal.valueOf(80)) > 0) {
+                throw new ApiException(
+                        "Percentage discount cannot exceed 80%",
+                        HttpStatus.BAD_REQUEST
+                );
+            }
+        } else {
+            if (dto.getDiscount()
+                    .compareTo(BigDecimal.valueOf(10000)) > 0) {
+                throw new ApiException(
+                        "Flat discount cannot exceed ₹10,000",
+                        HttpStatus.BAD_REQUEST
+                );
+            }
+        }
+        if (dto.getExpiresAt() != null &&
+                !dto.getExpiresAt()
+                        .isAfter(LocalDateTime.now())) {
+            throw new ApiException(
+                    "Coupon expiry date must be in the future",
+                    HttpStatus.BAD_REQUEST
+            );
+        }
         String code = normalizeCode(dto.getCode());
 
         if (couponRepo.existsByCodeIgnoreCase(code)) {
@@ -53,16 +80,14 @@ public class CouponService {
     }
 
     //Method to get all coupons with optional filters
-    public List<CouponResponseDTO> getAllCoupons(String code, Boolean active, LocalDateTime fromDate, LocalDateTime toDate) {
+    public Page<CouponResponseDTO> getAllCoupons(String code, Boolean active, LocalDateTime fromDate, LocalDateTime toDate, Pageable pageable) {
         Specification<Coupon> spec = Specification
                 .where(CouponSpecification.hasCode(code))
                 .and(CouponSpecification.hasActive(active))
                 .and(CouponSpecification.hasExpiresAtBetween(fromDate, toDate));
 
-        return couponRepo.findAll(spec, Sort.by(Sort.Direction.DESC, "id"))
-                .stream()
-                .map(this::toResponse)
-                .toList();
+        return couponRepo.findAll(spec, pageable)
+                .map(this::toResponse);
     }
 
 
@@ -108,6 +133,15 @@ public class CouponService {
                     HttpStatus.BAD_REQUEST
             );
         }
+    }
+
+    public List<CouponResponseDTO> getUsedCoupons(Long userId) {
+
+        List<Coupon> usedCoupons = couponRepo.findByUsedByUsers_Id(userId);
+
+        return usedCoupons.stream()
+                .map(this::toResponse)
+                .toList();
     }
 
     public CouponResponseDTO getCouponByCode(String code) {

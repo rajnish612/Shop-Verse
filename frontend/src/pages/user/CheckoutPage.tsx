@@ -121,6 +121,7 @@ const CheckoutPage: React.FC = () => {
         {/* Step 1: Address */}
         {currentStep === 1 && (
           <CheckoutAddressStep
+            onAddressSelect={(id: number) => setSelectedAddressId(id)}
             addresses={addresses}
             selectedAddressId={selectedAddressId}
             onSelectAddress={setSelectedAddressId}

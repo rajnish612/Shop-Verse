@@ -2,6 +2,8 @@ package com.server.server.repository;
 
 
 import com.server.server.entity.Product;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -13,11 +15,11 @@ public interface ProductRepo extends JpaRepository<Product, Long>, JpaSpecificat
 
     boolean existsByCategoryId(Long categoryId);
 
-    boolean  existsByProductAttributeValuesProductAttributeId(Long attributeId);
+    boolean existsByProductAttributeValuesProductAttributeId(Long attributeId);
 
     boolean existsByProductAttributeValuesId(Long attributeValueId);
 
     @Query("SELECT p FROM Product p WHERE p.discount > 0 AND p.stockQuantity >0 ORDER BY p.discount DESC")
-    List<Product> findDeals();
+    Page<Product> findDeals(Pageable pageable);
 
 }

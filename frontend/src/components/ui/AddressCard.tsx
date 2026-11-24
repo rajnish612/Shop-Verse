@@ -4,6 +4,7 @@ import type { Address } from "../../types";
 
 interface AddressCardProps {
   address: Address;
+
   onDelete?: (id: number) => void;
   isDeleting?: boolean;
   isSelected?: boolean;
@@ -12,6 +13,7 @@ interface AddressCardProps {
 
 const AddressCard: React.FC<AddressCardProps> = ({
   address,
+
   onDelete,
   isDeleting = false,
   isSelected = false,

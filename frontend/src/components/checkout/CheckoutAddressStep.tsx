@@ -4,6 +4,7 @@ import { MapPin, Loader2, AlertCircle, ShieldCheck } from "lucide-react";
 
 import { formatPrice } from "../../utils/helperFunctions";
 import type { Address, Coupon } from "../../types";
+import AddressCard from "../ui/AddressCard";
 
 interface CheckoutAddressStepProps {
   addresses: Address[];
@@ -19,6 +20,7 @@ interface CheckoutAddressStepProps {
   grandTotal: number;
 
   onContinue: () => void;
+  onAddressSelect: (id: number) => void;
 }
 
 const CheckoutAddressStep: React.FC<CheckoutAddressStepProps> = ({
@@ -30,6 +32,7 @@ const CheckoutAddressStep: React.FC<CheckoutAddressStepProps> = ({
   couponDiscount,
   grandTotal,
   onContinue,
+  onAddressSelect,
 }) => {
   return (
     <div className="max-w-7xl mx-auto">
@@ -59,7 +62,14 @@ const CheckoutAddressStep: React.FC<CheckoutAddressStepProps> = ({
               Manage Addresses
             </Link>
           </div>
-
+          {addresses.map((address, idx) => (
+            <AddressCard
+              key={address.id}
+              onSelect={() => onAddressSelect(address.id)}
+              isSelected={address.id == selectedAddressId}
+              address={address}
+            />
+          ))}
           {loading && (
             <div className="flex justify-center py-16">
               <Loader2 size={32} className="animate-spin text-primary" />

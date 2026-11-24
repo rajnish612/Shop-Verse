@@ -136,6 +136,11 @@ const UsersPage = () => {
   );
   const [selectedRoles, setSelectedRoles] = React.useState<RoleType[]>([]);
 
+  //Pagination
+  const [currentPage, setCurrentPage] = React.useState(0);
+  const [pageSize] = React.useState(10);
+  const [totalPages, setTotalPages] = React.useState(0);
+  const [totalElements, setTotalElements] = React.useState(0);
   const handleRoleToggle = (role: RoleType) => {
     setSelectedRoles((prev) =>
       prev.includes(role) ? prev.filter((r) => r !== role) : [...prev, role],
@@ -194,15 +199,25 @@ const UsersPage = () => {
   //Fetch all users
   React.useEffect(() => {
     userApi
-      .getAllUsers(searchQuery, roleFilter !== "ALL" ? roleFilter : null, null)
-      .then((data) => setUsers(data))
+      .getAllUsers(
+        searchQuery,
+        roleFilter !== "ALL" ? roleFilter : null,
+        null,
+        currentPage,
+        pageSize,
+      )
+      .then((data) => {
+        setUsers(data.content);
+        setTotalPages(data.totalPages);
+        setTotalElements(data.totalElements);
+      })
       .catch((err) => {
         console.log(err);
       })
       .finally(() => {
         setIsLoading(false);
       });
-  }, [roleFilter, searchQuery]);
+  }, [roleFilter, searchQuery, currentPage, pageSize]);
 
   return (
     <div className="space-y-6">
@@ -226,14 +241,20 @@ const UsersPage = () => {
             type="text"
             placeholder="Search by name or email address..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(0);
+            }}
             className="w-full rounded-lg border border-border bg-surface pl-9 pr-4 py-2 text-sm text-text-primary placeholder:text-text-muted focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary shadow-sm"
           />
         </div>
         <div className="sm:col-span-4">
           <select
             value={roleFilter}
-            onChange={(e) => setRoleFilter(e.target.value as RoleType | "ALL")}
+            onChange={(e) => {
+              setRoleFilter(e.target.value as RoleType | "ALL");
+              setCurrentPage(0);
+            }}
             className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text-primary focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary shadow-sm"
           >
             <option value="ALL">All Roles</option>
@@ -391,7 +412,48 @@ const UsersPage = () => {
           </table>
         </div>
       </div>
+      {/* Pagination */}
+      {!isLoading && users.length > 0 && (
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-text-secondary">
+            Showing{" "}
+            <span className="font-medium text-text-primary">
+              {currentPage * pageSize + 1}
+            </span>{" "}
+            to{" "}
+            <span className="font-medium text-text-primary">
+              {Math.min((currentPage + 1) * pageSize, totalElements)}
+            </span>{" "}
+            of{" "}
+            <span className="font-medium text-text-primary">
+              {totalElements}
+            </span>{" "}
+            users
+          </p>
 
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCurrentPage((prev) => prev - 1)}
+              disabled={currentPage === 0 || isLoading}
+              className="rounded-lg border border-border px-3 py-2 text-sm font-medium text-text-secondary transition hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Previous
+            </button>
+
+            <span className="px-2 text-sm text-text-secondary">
+              Page {currentPage + 1} of {totalPages}
+            </span>
+
+            <button
+              onClick={() => setCurrentPage((prev) => prev + 1)}
+              disabled={currentPage >= totalPages - 1 || isLoading}
+              className="rounded-lg border border-border px-3 py-2 text-sm font-medium text-text-secondary transition hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
       {/* {Role Modal} */}
       {editingUser && (
         <RoleModal

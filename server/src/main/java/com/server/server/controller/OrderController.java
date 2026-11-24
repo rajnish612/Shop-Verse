@@ -5,6 +5,10 @@ import com.server.server.domain.PaymentMethod;
 import com.server.server.dto.OrderResponseDTO;
 import com.server.server.service.OrderService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,9 +28,10 @@ public class OrderController {
     //Endpoint to get all orders for admin
     @GetMapping("/all")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<OrderResponseDTO>> getOrdersForAdmin(@RequestParam(required = false) String keyword,
-                                                                    @RequestParam(required = false) OrderStatus status) {
-        return ResponseEntity.ok(orderService.getOrdersForAdmin(keyword, status));
+    public ResponseEntity<Page<OrderResponseDTO>> getOrdersForAdmin(@RequestParam(required = false) String keyword,
+                                                                    @RequestParam(required = false) OrderStatus status, @PageableDefault(size = 10, sort = "orderDate",
+                    direction = Sort.Direction.DESC) Pageable pageable) {
+        return ResponseEntity.ok(orderService.getOrdersForAdmin(keyword, status, pageable));
     }
 
 

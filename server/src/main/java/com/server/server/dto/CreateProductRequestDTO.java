@@ -31,7 +31,11 @@ public class CreateProductRequestDTO {
     private BigDecimal mrpPrice;
 
 
-    @Digits(integer = 2, fraction = 2, message = "Discount must be a valid decimal number with up to 2 digits before and after the decimal point")
+    @NotNull(message = "Discount is required")
+    @DecimalMin(value = "0.00", message = "Discount cannot be negative")
+    @DecimalMax(value = "80.00", message = "Maximum discount allowed is 80%")
+    @Digits(integer = 2, fraction = 2,
+            message = "Discount can have up to 2 decimal places")
     private BigDecimal discount;
 
 

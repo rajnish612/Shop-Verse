@@ -1,10 +1,9 @@
-import { Link, useLocation, useNavigate } from "react-router";
+import { href, Link, useLocation, useNavigate } from "react-router";
 import {
   ShoppingBag,
   ShoppingCart,
   Menu,
   ChevronDown,
-  Heart,
   Package,
   MapPin,
   UserCircle,
@@ -13,7 +12,7 @@ import {
   LayoutDashboard,
 } from "lucide-react";
 import NavbarCategoryTree from "./NavbarCategoryTree";
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { authApis } from "../../services/auth";
 
@@ -26,7 +25,7 @@ const userDropdownItems = [
   { label: "My Profile", href: "/profile", icon: UserCircle },
   { label: "My Orders", href: "/orders", icon: Package },
   { label: "My Addresses", href: "/addresses", icon: MapPin },
-  { label: "Wishlist", href: "/wishlist", icon: Heart },
+  { label: "Used Coupons", href: "/coupons", icon: Folder },
 ];
 
 export function Navbar() {

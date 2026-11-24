@@ -124,6 +124,11 @@ public class AiProductTools {
                     required = false
             )
             Map<String, List<String>> requestedAttributes,
+            @ToolParam(description = "Zero-based page number. Defaults to 0.", required = false)
+            Integer page,
+
+            @ToolParam(description = "Number of products per page. Defaults to 10.", required = false)
+            Integer size,
             ToolContext toolContext
     ) {
 
@@ -150,7 +155,7 @@ public class AiProductTools {
                 return List.of();
             }
         }
-        System.out.println("Final Category IDs: " + categoryIds);
+
 
         Set<Long> attributeValueIds = null;
 
@@ -170,7 +175,8 @@ public class AiProductTools {
             attributeValueIds = new HashSet<>(resolvedIds);
         }
 
-        System.out.println("Final Attribute Value IDs: " + attributeValueIds);
+        int pageNumber = page == null ? 0 : Math.max(0, page);
+        int pageSize = size == null ? 10 : Math.min(20, Math.max(1, size));
         List<ProductResponseDTO> products = productService.getAllProducts(
                         keyword,
                         categoryIds,
@@ -181,7 +187,7 @@ public class AiProductTools {
                         stockMin,
                         stockMax,
                         attributeValueIds,
-                        PageRequest.of(0, 10)
+                        PageRequest.of(pageNumber, pageSize)
                 )
                 .getContent();
 

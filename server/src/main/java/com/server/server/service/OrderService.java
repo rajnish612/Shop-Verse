@@ -14,6 +14,8 @@ import com.server.server.specification.OrderSpecification;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.Nullable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
@@ -38,6 +40,7 @@ public class OrderService {
     private final CartRepo cartRepo;
     private final CartItemAttributeRepo cartItemAttributeRepo;
     private final OrderRepo orderRepo;
+    private final CouponRepo couponRepo;
 
     //Endpoint to create a new order
     @Transactional
@@ -194,12 +197,68 @@ public class OrderService {
                     product.getStockQuantity() - quantity
             );
         }
+        BigDecimal couponDiscount = BigDecimal.ZERO;
+        Coupon coupon = null;
+        if (couponCode != null && !couponCode.isBlank()) {
 
+            coupon = couponRepo.findByCode(couponCode.trim())
+                    .orElseThrow(() -> new ApiException(
+                            "Invalid coupon code",
+                            HttpStatus.BAD_REQUEST
+                    ));
+
+            // Check whether coupon is active
+            if (!coupon.isActive()) {
+                throw new ApiException(
+                        "This coupon is no longer active",
+                        HttpStatus.BAD_REQUEST
+                );
+            }
+
+            // Check expiry
+            if (coupon.getExpiresAt() != null &&
+                    !coupon.getExpiresAt()
+                            .isAfter(now)) {
+                throw new ApiException(
+                        "This coupon has expired",
+                        HttpStatus.BAD_REQUEST
+                );
+            }
+
+            // Check whether user has already used this coupon
+            if (coupon.getUsedByUsers()
+                    .contains(user)) {
+                throw new ApiException(
+                        "You have already used this coupon",
+                        HttpStatus.BAD_REQUEST
+                );
+            }
+
+            // Calculate coupon discount
+            if (coupon.isPercentage()) {
+                couponDiscount = totalPrice
+                        .multiply(coupon.getDiscount())
+                        .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+            } else {
+                couponDiscount = coupon.getDiscount()
+                        .min(totalPrice);
+            }
+
+            // Ensure discount never exceeds order amount
+            couponDiscount = couponDiscount.min(totalPrice);
+        }
         // 13. Attach order items
         order.setOrderItems(orderItems);
 
         // 14. Set total
-        order.setTotalPrice(totalPrice);
+        BigDecimal finalAmount = totalPrice.subtract(couponDiscount);
+        if (finalAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new ApiException(
+                    "Coupon cannot make the order completely free.",
+                    HttpStatus.BAD_REQUEST
+            );
+        }
+        order.setTotalPrice(finalAmount);
 
         /*
          * 15. Initialize payment details.
@@ -214,7 +273,11 @@ public class OrderService {
 
         // 16. Save order
         Order savedOrder = orderRepo.save(order);
-
+        if (coupon != null) {
+            user.getUsedCoupons()
+                    .add(coupon);
+            userRepo.save(user);
+        }
         // 17. Clear cart
         cart.getCartItems()
                 .clear();
@@ -238,15 +301,14 @@ public class OrderService {
     }
 
     //Method to get all orders for admin with optional keyword and status filters
-    public List<OrderResponseDTO> getOrdersForAdmin(String keyword, OrderStatus status) {
+    public Page<OrderResponseDTO> getOrdersForAdmin(String keyword, OrderStatus status, Pageable pageable) {
+
         Specification<Order> specification =
                 OrderSpecification.search(keyword)
                         .and(OrderSpecification.hasStatus(status));
 
-        return orderRepo.findAll(specification)
-                .stream()
-                .map(this::mapToOrderResponseDTO)
-                .toList();
+        return orderRepo.findAll(specification, pageable)
+                .map(this::mapToOrderResponseDTO);
     }
 
     //Method to update order status

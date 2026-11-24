@@ -12,6 +12,8 @@ import com.server.server.repository.UserRepo;
 import com.server.server.specification.UserDetailsSpecification;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -68,7 +70,7 @@ public class UserService {
     }
 
     //Get all users
-    public List<UserDTO> getAllUsers(Long userId,String keyword, RoleType roleType, Boolean isActive) {
+    public Page<UserDTO> getAllUsers(Long userId, String keyword, RoleType roleType, Boolean isActive, Pageable pageable) {
         Specification<User> spec = UserDetailsSpecification.search(keyword)
                 .and(UserDetailsSpecification.isActive(isActive))
                 .and(UserDetailsSpecification.notEqualUserId(userId));
@@ -81,10 +83,10 @@ public class UserService {
             spec = spec.and(UserDetailsSpecification.hasRole(role));
         }
 
-        return userRepo.findAll(spec)
-                .stream()
-                .map(this::toUserDetailsResponseDTO)
-                .toList();
+        return userRepo.findAll(spec, pageable)
+
+                .map(this::toUserDetailsResponseDTO);
+
     }
 
     //Get current user details

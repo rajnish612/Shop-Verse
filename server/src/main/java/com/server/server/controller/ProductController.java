@@ -5,6 +5,7 @@ import com.server.server.dto.CreateProductRequestDTO;
 import com.server.server.dto.ProductResponseDTO;
 import com.server.server.dto.UpdateProductRequestDTO;
 import com.server.server.service.ProductService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,7 +30,7 @@ public class ProductController {
     //Create product endpoint
     @PostMapping("/create")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ProductResponseDTO> createProduct(@RequestBody CreateProductRequestDTO dto) {
+    public ResponseEntity<ProductResponseDTO> createProduct(@Valid @RequestBody CreateProductRequestDTO dto) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(productService.createProduct(dto));
     }
@@ -63,8 +64,8 @@ public class ProductController {
 
     //Get latest deals of the products
     @GetMapping("/deals")
-    public ResponseEntity<List<ProductResponseDTO>> getDealsOfTheDay() {
-        return ResponseEntity.ok(productService.getDealsOfTheDay());
+    public ResponseEntity<Page<ProductResponseDTO>> getDealsOfTheDay(@PageableDefault(size = 10) Pageable pageable) {
+        return ResponseEntity.ok(productService.getDealsOfTheDay(pageable));
     }
 
     @GetMapping("/{productId}")

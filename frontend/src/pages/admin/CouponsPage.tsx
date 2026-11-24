@@ -37,6 +37,11 @@ export const CouponsPage: React.FC = () => {
   const [discount, setDiscount] = useState<number>(10);
   const [isPercentage, setIsPercentage] = useState(true);
   const [expiresAt, setExpiresAt] = useState("");
+  //Pagination
+  const [currentPage, setCurrentPage] = useState(0);
+  const [pageSize] = useState(10);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
 
   const handleDeleteCoupon = (id: number) => {
     setCouponList((prev) => prev.filter((c) => c.id !== id));
@@ -98,15 +103,21 @@ export const CouponsPage: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const data = await couponApi.getAll({
-        code: searchCode.trim() || undefined,
-        active:
-          selectedStatus === "all" ? undefined : selectedStatus === "active",
-        fromDate: fromDate ? `${fromDate}T00:00:00` : undefined,
-        toDate: toDate ? `${toDate}T23:59:59` : undefined,
-      });
+      const data = await couponApi.getAll(
+        {
+          code: searchCode.trim() || undefined,
+          active:
+            selectedStatus === "all" ? undefined : selectedStatus === "active",
+          fromDate: fromDate ? `${fromDate}T00:00:00` : undefined,
+          toDate: toDate ? `${toDate}T23:59:59` : undefined,
+        },
+        currentPage,
+        pageSize,
+      );
 
-      setCouponList(data);
+      setCouponList(data.content);
+      setTotalPages(data.totalPages);
+      setTotalElements(data.totalElements);
     } catch (error) {
       console.error("Failed to fetch coupons", error);
     } finally {
@@ -116,7 +127,7 @@ export const CouponsPage: React.FC = () => {
 
   useEffect(() => {
     void fetchCoupons();
-  }, [searchCode, selectedStatus, fromDate, toDate]);
+  }, [searchCode, selectedStatus, fromDate, toDate, currentPage, pageSize]);
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -160,7 +171,10 @@ export const CouponsPage: React.FC = () => {
               <input
                 type="text"
                 value={searchCode}
-                onChange={(e) => setSearchCode(e.target.value)}
+                onChange={(e) => {
+                  setSearchCode(e.target.value);
+                  setCurrentPage(0);
+                }}
                 placeholder="Search coupon code..."
                 className="w-full rounded-lg border border-border bg-surface py-2 pl-9 pr-3 text-sm text-text-primary focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               />
@@ -175,11 +189,12 @@ export const CouponsPage: React.FC = () => {
 
             <select
               value={selectedStatus}
-              onChange={(e) =>
+              onChange={(e) => {
                 setSelectedStatus(
                   e.target.value as "all" | "active" | "inactive",
-                )
-              }
+                );
+                setCurrentPage(0);
+              }}
               className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text-primary focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             >
               <option value="all">All statuses</option>
@@ -198,7 +213,10 @@ export const CouponsPage: React.FC = () => {
               type="date"
               value={fromDate}
               max={toDate || undefined}
-              onChange={(e) => setFromDate(e.target.value)}
+              onChange={(e) => {
+                setFromDate(e.target.value);
+                setCurrentPage(0);
+              }}
               className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text-primary focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             />
           </div>
@@ -213,7 +231,10 @@ export const CouponsPage: React.FC = () => {
               type="date"
               value={toDate}
               min={fromDate || undefined}
-              onChange={(e) => setToDate(e.target.value)}
+              onChange={(e) => {
+                setToDate(e.target.value);
+                setCurrentPage(0);
+              }}
               className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text-primary focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             />
           </div>
@@ -227,6 +248,7 @@ export const CouponsPage: React.FC = () => {
               setSelectedStatus("all");
               setFromDate("");
               setToDate("");
+              setCurrentPage(0);
             }}
             className="text-sm font-medium text-text-secondary transition hover:text-primary"
           >
@@ -502,6 +524,48 @@ export const CouponsPage: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* Pagination */}
+      {!isLoading && couponList.length > 0 && (
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-text-secondary">
+            Showing{" "}
+            <span className="font-medium text-text-primary">
+              {currentPage * pageSize + 1}
+            </span>{" "}
+            to{" "}
+            <span className="font-medium text-text-primary">
+              {Math.min((currentPage + 1) * pageSize, totalElements)}
+            </span>{" "}
+            of{" "}
+            <span className="font-medium text-text-primary">
+              {totalElements}
+            </span>{" "}
+            coupons
+          </p>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCurrentPage((prev) => prev - 1)}
+              disabled={currentPage === 0}
+              className="rounded-lg border border-border px-3 py-2 text-sm font-medium text-text-secondary transition hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Previous
+            </button>
+
+            <span className="px-2 text-sm text-text-secondary">
+              Page {currentPage + 1} of {totalPages}
+            </span>
+
+            <button
+              onClick={() => setCurrentPage((prev) => prev + 1)}
+              disabled={currentPage >= totalPages - 1}
+              className="rounded-lg border border-border px-3 py-2 text-sm font-medium text-text-secondary transition hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Next
+            </button>
           </div>
         </div>
       )}

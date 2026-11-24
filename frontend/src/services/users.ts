@@ -1,13 +1,24 @@
 import { RoleType, type UserDetails } from "../types";
 import api from "./api";
-
+export interface PageResponse<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+  first: boolean;
+  last: boolean;
+  empty: boolean;
+}
 export const userApi = {
   //Fetch all users
   async getAllUsers(
     keyWord: string = "",
     role: RoleType | null = null,
     active: boolean | null,
-  ): Promise<UserDetails[]> {
+    page: number = 0,
+    size: number = 10,
+  ): Promise<PageResponse<UserDetails>> {
     const queryParams = new URLSearchParams();
     if (keyWord.trim()) {
       queryParams.append("keyword", keyWord.trim());
@@ -19,9 +30,12 @@ export const userApi = {
     if (active != null) {
       queryParams.append("active", String(active));
     }
+
+    queryParams.append("page", page.toString());
+    queryParams.append("size", size.toString());
     const query = queryParams.toString();
 
-    const { data } = await api.get<UserDetails[]>(
+    const { data } = await api.get<PageResponse<UserDetails>>(
       `/user${query ? `?${query}` : ""} `,
     );
 

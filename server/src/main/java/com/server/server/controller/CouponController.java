@@ -6,10 +6,16 @@ import com.server.server.dto.CouponResponseDTO;
 import com.server.server.service.CouponService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -33,7 +39,7 @@ public class CouponController {
     //Endpoint to get all coupons with optional filters
     @GetMapping
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<List<CouponResponseDTO>> getAllCoupons(
+    public ResponseEntity<Page<CouponResponseDTO>> getAllCoupons(
             @RequestParam(required = false) String code,
             @RequestParam(required = false) Boolean active,
             @RequestParam(required = false)
@@ -41,11 +47,12 @@ public class CouponController {
             LocalDateTime fromDate,
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-            LocalDateTime toDate) {
+            LocalDateTime toDate, @PageableDefault(size = 2, sort = "id", direction = Sort.Direction.DESC)
+            Pageable pageable) {
 
         return ResponseEntity.ok(
                 couponService.getAllCoupons(
-                        code, active, fromDate, toDate
+                        code, active, fromDate, toDate, pageable
                 )
         );
     }
@@ -66,5 +73,12 @@ public class CouponController {
     }
 
 
+    //Endpoint to fetch all used couponse
+    @GetMapping("/used")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public ResponseEntity<List<CouponResponseDTO>> getUsedCoupons(@AuthenticationPrincipal Jwt jwt) {
+        Long userId = jwt.getClaim("userId");
+        return ResponseEntity.ok(couponService.getUsedCoupons(userId));
+    }
 
 }
