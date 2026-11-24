@@ -40,6 +40,12 @@ export interface Address {
   zipCode: string;
 }
 
+export interface DashBoardData {
+  totalRevenue: number;
+  totalOrders: number;
+  totalUsers: number;
+  totalProducts: number;
+}
 export interface User {
   id: number;
   email: string;
