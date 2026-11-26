@@ -50,7 +50,7 @@ public class AuthService {
                 .email(registerUserDTO.getEmail())
                 .password(encodedPassword)
                 .avatar(registerUserDTO.getAvatar())
-                .active(true)
+                .active(false)
                 .roles(List.of(role))
                 .build());
 

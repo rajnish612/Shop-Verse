@@ -59,6 +59,8 @@ export function Navbar() {
   if (loading) {
     return <div>Loading</div>;
   }
+  console.log("user", user);
+
   return (
     <nav className="sticky top-0 z-50 border-b border-slate-200 bg-white shadow-sm">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
