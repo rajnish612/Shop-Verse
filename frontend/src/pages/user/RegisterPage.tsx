@@ -37,14 +37,27 @@ export const RegisterPage: React.FC = () => {
       setErrorMsg("Please agree to terms and conditions");
       return;
     }
+
     try {
-      const data = await authApis.registerUser({ name, email, password });
-      toast.success("User registered successfully");
-    } catch (err) {
-      console.log("err", err);
+      setIsLoading(true);
+
+      await authApis.registerUser({ name, email, password });
+
+      toast.success("Verification OTP sent to your email");
+
+      navigate("/verify-email", {
+        state: { email },
+      });
+    } catch (err: any) {
+      console.error("Registration error:", err);
+
+      setErrorMsg(
+        err.response?.data?.message || "Registration failed. Please try again.",
+      );
+    } finally {
+      setIsLoading(false);
     }
   };
-
   const handleGoogleSignup = () => {
     setIsLoading(true);
     setTimeout(() => {
@@ -206,14 +219,13 @@ export const RegisterPage: React.FC = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full mt-2 py-3.5 px-4 rounded-xl bg-primary hover:bg-primary-dark text-white font-bold text-sm transition-all shadow-md shadow-primary/25 flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full mt-2 py-3.5 px-4 rounded-xl bg-primary hover:bg-primary-dark text-white font-bold text-sm transition-all shadow-md shadow-primary/25 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
-                <div className="flex items-center space-x-2 justify-center">
-                  {" "}
-                  <Loader2 className="animate-spin" />
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
                   <span>Creating account...</span>
-                </div>
+                </>
               ) : (
                 <>
                   <span>Create Account</span>
@@ -238,6 +250,7 @@ export const RegisterPage: React.FC = () => {
           {/* Google Signup */}
           <div className="mt-6">
             <button
+              disabled={isLoading}
               onClick={handleGoogleSignup}
               type="button"
               className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-border bg-surface hover:bg-surface-hover text-text-primary font-semibold text-sm transition-colors shadow-xs"

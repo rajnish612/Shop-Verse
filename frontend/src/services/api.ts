@@ -26,7 +26,7 @@ api.interceptors.response.use(
         window.dispatchEvent(new Event("auth:unauthorized"));
         toast.error("Your session has expired. Please log in again.");
       } else if (status === 403) {
-        toast.error("You don't have permission to perform this action.");
+        toast.error(message);
       } else {
         toast.error(message);
       }

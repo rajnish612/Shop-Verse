@@ -25,6 +25,9 @@ import RequireAuth from "./components/auth/RequireAuth";
 import ProfilePage from "./pages/user/ProfilePage";
 import { Toaster } from "sonner";
 import UsedCouponsPage from "./pages/user/UsedCouponsPage";
+import VerifyEmailPage from "./pages/user/VerifyEmailPage";
+import ForgotPasswordPage from "./pages/user/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/user/ResetPasswordPage";
 function App() {
   return (
     <>
@@ -50,6 +53,9 @@ function App() {
             </Route>
             <Route path="login" element={<LoginPage />} />
             <Route path="register" element={<RegisterPage />} />
+            <Route path="verify-email" element={<VerifyEmailPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
             {/* User interface */}
             <Route element={<UserLayout />}>
               <Route index element={<HomePage />} />

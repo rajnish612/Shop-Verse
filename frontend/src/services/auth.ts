@@ -6,10 +6,26 @@ export interface RegisterUserRequest {
   email: string;
   password: string;
 }
+export interface VerifyEmailRequest {
+  email: string;
+  otp: string;
+}
 
+export interface ResendOtpRequest {
+  email: string;
+}
 export interface LoginRequest {
   email: string;
   password: string;
+}
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  email: string;
+  otp: string;
+  newPassword: string;
 }
 export const authApis = {
   //Register user
@@ -32,5 +48,25 @@ export const authApis = {
   //Logout
   async logout(): Promise<void> {
     await api.post("/auth/logout");
+  },
+  // Verify email OTP
+  async verifyEmail(request: VerifyEmailRequest): Promise<void> {
+    await api.post("/auth/verify-email", request);
+  },
+
+  // Resend verification OTP
+  async resendOtp(request: ResendOtpRequest): Promise<void> {
+    await api.post("/auth/resend-otp", request);
+  },
+  // Request password reset OTP
+  async forgotPassword(request: ForgotPasswordRequest): Promise<void> {
+    await api.post("/auth/forgot-password", null, {
+      params: { email: request.email },
+    });
+  },
+
+  // Reset password using OTP
+  async resetPassword(request: ResetPasswordRequest): Promise<void> {
+    await api.post("/auth/reset-password", request);
   },
 };

@@ -14,10 +14,11 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
+  const [errorMsg, setErrorMsg] = useState<string>("");
   const [email, setEmail] = useState<string>("rajnish@example.com");
   const [password, setPassword] = useState<string>("password123");
   const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [rememberMe, setRememberMe] = useState<boolean>(true);
+
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -28,6 +29,11 @@ export const LoginPage: React.FC = () => {
       navigate("/");
     } catch (err) {
       console.log("error logging user", err);
+
+      const message =
+        err.response?.data?.message || "Invalid email or password.";
+
+      setErrorMsg(message);
     } finally {
       setIsLoading(false);
     }
@@ -85,16 +91,12 @@ export const LoginPage: React.FC = () => {
                 <label className="block text-xs font-bold text-text-secondary uppercase tracking-wider">
                   Password
                 </label>
-                <a
-                  href="#forgot"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    alert("Password reset instructions sent to your email.");
-                  }}
+                <Link
+                  to="/forgot-password"
                   className="text-xs font-semibold text-primary hover:text-primary-dark transition-colors"
                 >
                   Forgot password?
-                </a>
+                </Link>
               </div>
               <div className="relative rounded-xl border border-border focus-within:ring-2 focus-within:ring-primary focus-within:border-transparent transition-all">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-text-muted">
@@ -123,23 +125,11 @@ export const LoginPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Remember Me */}
-            <div className="flex items-center">
-              <input
-                id="remember-me"
-                type="checkbox"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                className="w-4 h-4 rounded border-border text-primary focus:ring-primary accent-primary cursor-pointer"
-              />
-              <label
-                htmlFor="remember-me"
-                className="ml-2 block text-xs font-medium text-text-secondary cursor-pointer"
-              >
-                Keep me signed in on this device
-              </label>
-            </div>
-
+            {errorMsg && (
+              <div className="rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-3">
+                <p className="text-sm text-red-500">{errorMsg}</p>
+              </div>
+            )}
             {/* Submit Button */}
             <button
               type="submit"

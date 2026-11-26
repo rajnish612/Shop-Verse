@@ -1,9 +1,7 @@
 package com.server.server.controller;
 
 
-import com.server.server.dto.LoginRequestDTO;
-import com.server.server.dto.RegisterUserDTO;
-import com.server.server.dto.UserDTO;
+import com.server.server.dto.*;
 import com.server.server.entity.User;
 import com.server.server.service.AuthService;
 import com.server.server.service.CustomUserDetails;
@@ -72,6 +70,45 @@ public class Authcontroller {
     @GetMapping("/me")
     public ResponseEntity<UserDTO> getCurrentUser(@AuthenticationPrincipal Jwt jwt) {
         return ResponseEntity.ok(userService.getCurrentUserDetails(jwt.getClaim("userId")));
+    }
+
+    // Verify email
+    @PostMapping("/verify-email")
+    public ResponseEntity<String> verifyEmail(
+            @Valid @RequestBody VerifyEmailDTO request
+    ) {
+        authService.verifyEmail(request.getEmail(), request.getOtp());
+
+        return ResponseEntity.ok("Email verified successfully");
+    }
+
+    // Resend OTP
+    @PostMapping("/resend-otp")
+    public ResponseEntity<String> resendOtp(
+            @Valid @RequestBody ResendOtpDTO request
+    ) {
+        authService.resendOtp(request.getEmail());
+
+        return ResponseEntity.ok("OTP sent successfully");
+    }
+
+    // Forgot password
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Void> forgotPassword(@RequestParam String email) {
+        authService.forgotPassword(email);
+        return ResponseEntity.ok()
+                .build();
+    }
+
+    //Reset password
+    @PostMapping("/reset-password")
+    public ResponseEntity<Void> resetPassword(
+            @Valid @RequestBody ResetPasswordDTO dto
+    ) {
+        authService.resetPassword(dto);
+
+        return ResponseEntity.ok()
+                .build();
     }
 
     // Logout user
